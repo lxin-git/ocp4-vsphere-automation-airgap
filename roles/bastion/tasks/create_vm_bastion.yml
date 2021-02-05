@@ -1,0 +1,75 @@
+
+- name: Set the vcenter.folder_absolute_path if not provided
+  set_fact:
+    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+config.cluster_name}, recursive=True) }}"
+  when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
+
+- name: Create a VM folder on given datacenter
+  vcenter_folder:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    folder_name: "{{ config.cluster_name }}"
+    folder_type: vm
+    validate_certs: no
+    state: present
+  register: vm_folder_creation_result
+  delegate_to: localhost
+
+- debug: var=vm_folder_creation_result
+- debug:
+    msg: "{{ helper_vm.hostname }}"
+
+- name: Create bastion VM from the template
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    cluster: "{{ vcenter.cluster }}"
+    resource_pool: "{{ vcenter.resource_pool }}"
+    template: "{{ helper_vm.template }}"
+    convert: thick
+    networks:
+    - name: "{{ helper_vm.public_network }}"
+      ip: "{{ helper_vm.public_ip }}"
+      netmask: "{{ helper_vm.public_netmask }}"
+      gateway: "{{ helper_vm.public_gateway }}"
+      #mac: 00:50:56:8e:dd:01
+      start_connected: true
+    #  dns_servers:
+    #  - "{{ helper_vm.public_dns1 }}"
+    #  - "{{ helper_vm.public_dns2 }}"
+    - name: "{{ vcenter.network}}"
+      ip: "{{ helper_vm.private_ip }}"
+      netmask: "{{ static_ip.netmask}}"
+      gateway: "{{ static_ip.gateway }}"
+      #mac: 00:50:56:8e:dd:02
+      start_connected: true
+    guest_id: "rhel7_64Guest"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ helper_vm.hostname }}"
+    #name: testbastion
+    state: "{{ vcenter.vm_power_state }}"
+    disk:
+    - size_gb: "{{ helper_vm.disksize }}"
+      type: None
+      datastore: "{{ vcenter.datastore}}"
+    hardware:
+      memory_mb: "{{ helper_vm.memory_mb }}"
+      num_cpus: "{{ helper_vm.num_cpus }}"
+      memory_reservation_lock: True
+    wait_for_ip_address: yes
+    customization:
+      domain: "{{ helper_vm.public_dnsdomain }}"
+      dns_servers:
+        - "{{ helper_vm.public_dns1 }}"
+        - "{{ helper_vm.public_dns2 }}"
+      dns_suffix:
+        - "{{ helper_vm.public_dnsdomain }}"
+        - "{{ config.base_domain }}"
+
+- name: waiting for server to come up
+  local_action: wait_for port=22 host="{{ helper_vm.public_ip }}" delay=5 timeout=300

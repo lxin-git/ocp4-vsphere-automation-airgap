@@ -1,0 +1,20 @@
+- name: Create the chrony.conf file
+  template:
+    src: chrony.conf.j2
+    dest: /tmp/chrony.conf
+
+- name: Generate base64 config file
+  command: "cat /tmp/chrony.conf | base64 -w0"
+  register: chronyb64output
+
+- name: Save base64 of config file
+  set_fact:
+    chrony_base64: "{{ chronyb64output.stdout }}"
+
+- name: Generate the machineconfigs for chrony
+  template:
+    src: mc-chrony-configuration.yaml.j2
+    dest: "{{ helper_vm.workdir }}/install-dir/manifests/99-{{ item }}-chrony-configuration.yaml"
+  loop:
+    - master
+    - worker

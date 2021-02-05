@@ -1,0 +1,98 @@
+    - name: Create a directory for the registry if one does not exist
+      file:
+        path: /opt/registry/{{ item }}
+        state: directory
+        mode: '0755'
+      with_items: ["auth","certs","data"]
+      become: true
+
+    - name: Create a certificate
+      command:
+        cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=US/ST=California/L=Sunnyvale/O=Red Hat, Inc./OU=Solution Architecture/CN={{ registry.host }}"
+        chdir: /opt/registry/certs
+      become: true
+
+    - name: Create a username and password in a httpasswd file
+      command:
+        cmd: htpasswd -bBc /opt/registry/auth/htpasswd {{ registry.username | default('ansible') }}  {{ registry.password | default('ansible') }}
+      become: true
+
+    #- name: Ensure no pods are by default running
+    #  command: podman rm -af
+
+    - name: Remove an existing mirror-registry container
+      command: podman rm --force mirror-registry
+      ignore_errors: True
+      become: True
+
+    # sometime thie command will failed to clean containers, need manually remove contend in /var/lib/containers/storage/overlay-containers/containers.json
+    - name: Clean mirror-registry in overlay-containers/containers.json
+      lineinfile:
+        path: /var/lib/containers/storage/overlay-containers/containers.json
+        state: absent
+        regexp: 'mirror-registry'
+
+    - name: Pull the registry docker image
+      podman_image:
+        name: "{{ registry.registry_image }}"
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"
+
+    - name: Generate mirror-registry service file
+      template:
+        src: ../templates/mirror-registry.service.j2
+        dest: /etc/systemd/system/mirror-registry.service
+        mode: 0655
+
+    - name: Start mirror-registry
+      systemd:
+        name: mirror-registry
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Ensure registry pod is up
+      shell: podman ps | grep mirror-registry
+      register: pod_state
+      until: pod_state.stdout != ""
+      retries: 4
+      delay: 15
+
+    #- name: Run the registry pod
+    #  command: |
+    #    podman run --name mirror-registry -p {{ registry.port }}:5000 \
+    #        -v /opt/registry/data:/var/lib/registry:z \
+    #        -v /opt/registry/auth:/auth:z \
+    #        -e "REGISTRY_AUTH=htpasswd" \
+    #        -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+    #        -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+    #        -v /opt/registry/certs:/certs:z \
+    #        -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+    #        -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+    #        -d docker.io/library/registry:2
+    #  become: true
+
+    - name: Open up the required ports thru firewall
+      firewalld:
+        port: "{{ item.port }}/tcp"
+        zone: "{{ item.zone }}"
+        state: enabled
+        permanent: yes
+      loop:
+        - { port: "{{ registry.port }}", zone: "internal"}
+        - { port: "{{ registry.port }}", zone: "public"}
+      become: true
+
+    - name: Copy Self Signed OpenSSL certificate
+      copy:
+        src: /opt/registry/certs/domain.crt
+        dest: /etc/pki/ca-trust/source/anchors/domain.crt
+        remote_src: yes
+        force: yes
+
+    - name: Add the certificate to the trusted certificates on the ansible controller
+      fetch:
+        src: /opt/registry/certs/domain.crt
+        dest: "{{ playbook_dir }}/{{ inventory_hostname }}_domain.crt"
+        flat: yes

@@ -1,0 +1,73 @@
+- name: Transfer the postinstall script
+  copy:
+    src: ../files/postinstall.sh
+    dest: "{{ helper_vm.workdir }}"
+    mode: 755
+
+- name: Wait for bootstrap & install complete...
+  command: "{{ helper_vm.workdir }}/postinstall.sh"
+  register: cmd_res
+  retries: 100
+  delay: 30
+  until: cmd_res.rc == 0
+
+- name: Delete Bootstrap VM
+  command: "{{ helper_vm.workdir }}/bin/govc vm.destroy {{vcenter.folder_absolute_path}}/{{ item.name }}"  # noqa 301
+  loop: "{{ bootstrap_vms }}"
+  when: cmd_res.rc == 0
+
+- name: Fetch kubeadmin password content
+  slurp:
+    src: "{{ helper_vm.workdir }}/install-dir/auth/kubeadmin-password"
+  register: kubeadminpass
+
+- name: Create fast path openshift login command oclogin
+  copy:
+    dest: /usr/local/sbin/oclogin
+    mode: 0755
+    content: |
+      oc login https://api.{{ config.cluster_name }}.{{ config.base_domain}}:6443 -u kubeadmin -p {{ kubeadminpass['content'] | b64decode }}
+
+- name: Prepare nfs-storage-provisioner setup script
+  copy:
+    dest: /tmp/nfs-sc-setup.sh
+    mode: 0755
+    content: |
+      #!/bin/bash
+      exportfs -rv
+      export KUBECONFIG={{ helper_vm.workdir }}/install-dir/auth/kubeconfig
+      firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="{{ helper_vm.private_ip.split(".")[0] }}.{{ helper_vm.private_ip.split(".")[1] }}.0.0/16" accept"
+      firewall-cmd --reload
+      helpernodecheck nfs-setup
+      oc create -f /usr/local/src/registry-pvc.yaml -n openshift-image-registry
+      oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"pvc":{ "claim": "registry-pvc"}}}}'
+      oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState": "Managed"}}'
+      oc patch configs.imageregistry.operator.openshift.io/cluster --type merge -p '{"spec":{"defaultRoute":true}}'
+  when: storage.setup_nfs_sc
+
+- name: Setup nfs-storage-provisioner if enabled in config
+  command: /tmp/nfs-sc-setup.sh
+  when: storage.setup_nfs_sc
+
+- pause:
+    seconds: 0
+    prompt: |
+
+      *** INSTALL COMPLETE ***
+      Next steps:
+      1. You can remove the bootstrap node at this point. Recommend to simply shut the bootstrap machine down.
+
+      2. You can check the installation status of your cluster using:
+
+         openshift-install wait-for install-complete --dir {{ helper_vm.workdir }}/install-dir
+
+      3. To access the cluster as the system:admin user when using 'oc':
+
+         export KUBECONFIG={{ helper_vm.workdir }}/install-dir/auth/kubeconfig
+         oc get clusteroperator
+         oc get clusterversion
+
+      4. Access the OpenShift web-console here:
+
+        https://console-openshift-console.apps.{{ config.cluster_name }}.{{ config.base_domain}}
+        user: kubeadmin, password: {{ kubeadminpass['content'] | b64decode }}

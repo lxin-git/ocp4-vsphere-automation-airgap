@@ -1,0 +1,28 @@
+  #------------------------------------------------
+  # Changed old copy from ansible control manager
+  #------------------------------------------------
+
+  #- name: Copy the all the ignition files over to the webserver
+  #  become: true
+  #  copy:
+  #    remote_src: yes
+  #    src: "{{ item }}"
+  #    dest: "/var/www/html/ignition/"
+  #    owner: root
+  #  with_fileglob:
+  #    - "{{ helper_vm.workdir }}/install-dir/*.ign"
+
+  - name: Get the generated ignition file list
+    find:
+      paths: "{{ helper_vm.workdir }}/install-dir"
+      patterns: '*.ign'
+    register: ignfiles
+
+  - name: Copy the all the ignition files over to the webserver folder
+    become: true
+    copy:
+      remote_src: yes
+      src: "{{ item.path }}"
+      dest: "/var/www/html/ignition/"
+      owner: root
+    with_items: "{{ignfiles.files}}"

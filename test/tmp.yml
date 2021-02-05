@@ -1,0 +1,57 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Generate var file to landing extra vars
+      copy:
+        content: "{{ ocpconfig | to_nice_yaml }}"
+        dest: "current_ocpconfig.yml"
+    - name: Loading current ocpconfig var file
+      include_vars: current_ocpconfig.yml
+
+    - name: Prepare helper vars-static var file
+      template:
+        src: vars-static.j2
+        dest: "{{ playbook_dir }}/vars-static.yml"
+        mode: 0644
+        force: yes
+
+    - name: Add host to group [bastion]
+      add_host:
+        name: "{{ helper_vm.public_ip }}"
+        groups: bastion
+        ansible_ssh_user: "root"
+        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
+        host_key_checking: False
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+    - name: Add host to group [webservers]
+      add_host:
+        name: "{{ helper_vm.public_ip }}"
+        groups: webservers
+        ansible_ssh_user: "root"
+        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
+        host_key_checking: False
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+- hosts: bastion
+  gather_facts: True
+  vars_files:
+    - roles/helper/vars/main.yml
+  environment:
+    PATH: "{{ ocpconfig.helper_vm.workdir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ ocpconfig.vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ ocpconfig.vcenter.admin_password }}"
+    GOVC_URL: "https://{{ ocpconfig.vcenter.ip }}"
+    GOVC_INSECURE: 1
+  handlers:
+  - import_tasks: roles/helper/handlers/main.yml
+  tasks:
+    - name: Loading current ocpconfig var file to bastion node
+      include_vars: current_ocpconfig.yml
+    - name: include vars-static
+      include_vars: vars-static.yml
+    - name: Performing the postinstall check action
+      import_role:
+        name: postinstall
+

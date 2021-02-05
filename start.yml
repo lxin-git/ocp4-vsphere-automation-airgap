@@ -1,0 +1,91 @@
+---
+- hosts: localhost
+  gather_facts: False
+  vars_files: all.yml
+  tasks:
+    - name: Prepare helper vars-static var file
+      template:
+        src: vars-static.j2
+        dest: "{{ playbook_dir }}/vars-static.yml"
+        mode: 0644
+        force: yes
+    - name: Create VM for bastion host
+      import_role:
+        name: bastion
+        tasks_from: create_vm_bastion
+
+    - name: Add host to group [bastion]
+      add_host:
+        name: "{{ helper_vm.public_ip }}"
+        groups: bastion
+        ansible_ssh_user: "root"
+        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
+        host_key_checking: False
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+    - name: Add host to group [webservers]
+      add_host:
+        name: "{{ helper_vm.public_ip }}"
+        groups: webservers
+        ansible_ssh_user: "root"
+        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
+        host_key_checking: False
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+- hosts: bastion
+  gather_facts: True
+  vars_files:
+    - all.yml
+    - roles/helper/vars/main.yml
+  environment:
+    PATH: "{{ helper_vm.workdir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_INSECURE: 1
+  handlers:
+  - import_tasks: roles/helper/handlers/main.yml
+  tasks:
+    - name: include vars-static
+      include_vars: vars-static.yml
+    - name: validate hostnames
+      import_tasks: roles/helper/tasks/validate_host_names.yaml
+    - name: Start helper function setup
+      import_role:
+        name: helper
+    - name: Set the cache of all the download links
+      import_role:
+        name: cache
+    - name: Create local automation directory
+      file:
+        path: "{{ helper_vm.workdir }}"
+        state: directory
+        mode: '0755'
+    - name: Run all the common tasks
+      import_role:
+        name: common
+    - name: Copy over generated ignition files to webserver
+      import_role:
+        name: webserver
+        tasks_from: copy_ign_files
+    - name: Download the installer raw.gz file to webserver
+      import_role:
+        name: webserver
+        tasks_from: download_raw_installer_files
+    - name: Run the vmware role to setup vCenter folder
+      import_role:
+        name: vmware
+    - name: Reset the vcenter.vm_power_state to poweredoff
+      set_fact:
+        vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
+    - name: Echo the value of the variable vcenter.vm_power_state
+      debug: var=vcenter.vm_power_state
+    - name: Run steps specific to DHCP and PXE boot
+      import_role:
+        name: dhcp_pxe
+    - name: Run steps for static ip setup of VMs
+      import_role:
+        name: static_ips
+    - name: Performing the postinstall check action
+      import_role:
+        name: postinstall

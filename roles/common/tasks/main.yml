@@ -1,0 +1,17 @@
+  - name: Run all the pre-install steps
+    include: pre_install.yml
+
+  - name: Run the setup tasks for a restricted environment
+    when: registry.enabled
+    include: setup_registry.yml
+
+  - name: Run the tasks for a restricted environment
+    when: registry.enabled
+    include: utilize_registry.yml
+
+  - name: Run all the install steps
+    include: install.yml
+
+  # Only valid for vmware and only 1 disk attached with our vm template.
+  - name: Configure the disk to extend root filesystem
+    include: config_disk.yml

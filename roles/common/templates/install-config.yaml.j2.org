@@ -1,0 +1,45 @@
+apiVersion: v1
+baseDomain: {{ config.base_domain }}
+compute:
+- hyperthreading: Enabled   
+  name: worker
+{% if config.provider is defined and 'none' in config.provider %}
+  replicas: {{ worker_vms | length }}
+{% else %}
+  replicas: 0
+{% endif %}
+controlPlane:
+  hyperthreading: Enabled   
+  name: master
+  replicas: 3 
+metadata:
+  name: {{ config.cluster_name }}
+platform:
+{% if config.provider is defined and 'none' in config.provider %}
+  none: {}
+{% else %}
+  vsphere:
+    vcenter: {{ vcenter.ip }}
+    username: {{ vcenter.service_account_username }}
+    password: {{ vcenter.service_account_password }}
+    datacenter: {{ vcenter.datacenter }}
+    defaultDatastore: {{ vcenter.datastore }}
+{% endif %}
+fips: {{ config.fips }}
+pullSecret: '{{ config.pull_secret | to_json }}'
+sshKey: '{{ config.installer_ssh_key }}'
+{% if proxy is defined and proxy.enabled == true %}
+proxy:
+  httpProxy: {{ proxy.http_proxy }}
+  httpsProxy: {{ proxy.https_proxy }}
+  noProxy: {{ proxy.no_proxy }}
+{% endif %}
+{% if registry is defined and registry.enabled == true %}
+imageContentSources:
+- mirrors:
+  - {{ registry.host }}:5000/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}
+- mirrors:
+  - {{ registry.host }}:5000/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/ocp-v4.0-art-dev
+{% endif %}

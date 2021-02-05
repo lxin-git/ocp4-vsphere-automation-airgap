@@ -1,0 +1,24 @@
+---
+staticips: true
+helper:
+  name: "{{ helper_vm.hostname }}"
+  ipaddr: "{{ helper_vm.private_ip }}"
+  networkifacename: "{{ helper_vm.private_nic }}"
+dns:
+  domain: "{{ config.base_domain }}"
+  clusterid: "{{ config.cluster_name }}"
+  forwarder1: "{{ helper_vm.public_dns1 }}"
+  forwarder2: "{{ helper_vm.public_dns2 }}"
+bootstrap:
+  name: "{{ bootstrap_vms[0].name }}"
+  ipaddr: "{{ bootstrap_vms[0].ipaddr }}"
+masters:
+{% for m in master_vms %}
+  - name: "{{ m.name }}"
+    ipaddr: "{{ m.ipaddr }}"
+{% endfor %}
+workers:
+{% for w in worker_vms %}
+  - name: "{{ w.name }}"
+    ipaddr: "{{ w.ipaddr }}"
+{% endfor %}

@@ -1,0 +1,59 @@
+    - name: Generate the ignition manifests
+      command: "openshift-install create manifests --dir={{ helper_vm.workdir }}/install-dir"
+
+    - shell: "ls {{ helper_vm.workdir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
+      register: master_machineset_files
+      when: ocp_major_version not in ["4.2","4.3"]
+
+    - name: Remove Master Machine manifests
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items: "{{ master_machineset_files.stdout_lines }}"
+      when: ocp_major_version not in ["4.2","4.3"]
+
+    - name: Remove Worker MachineSet manifest
+      file:
+        path: "{{ helper_vm.workdir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-0.yaml"
+        state: absent
+      when: ocp_major_version not in ["4.2","4.3"]
+
+    #- name: Remove manifest files for control plane machines and compute machineSets (UPI)
+    #  shell: "rm -f {{ helper_vm.workdir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml {{ helper_vm.workdir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-*.yaml"
+      #---- when: ocp_major_version not in ["4.3","4.4"]
+
+    - name: Apply the patch to set mastersSchedulable to false
+      patch:
+        src: "cluster-scheduler-02-config.yml.patch"
+        dest: "{{ helper_vm.workdir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
+
+    - name: Configure custom ntp servers for masters and workers
+      when: ntp.custom
+      include_tasks: configure_ntp.yml
+
+    - name: Generate the ignition configs
+      command: "openshift-install create ignition-configs --dir={{ helper_vm.workdir }}/install-dir"
+
+# -------------------------------------------------------------
+#  Only apply to v4.5+, a new hash value required for vm folder
+#  Otherwise, the vsphere volume storage class not work.
+# -------------------------------------------------------------
+    - name: Get current openshift-install infrastructureName hash value
+      command: jq -r .infraID "{{ helper_vm.workdir }}/install-dir/metadata.json"
+      register: ocp_infrastructureName_hash
+      when: ocp_major_version not in ["4.3","4.4"]
+
+    - name: Update VM folder for new hash value
+      command: "govc object.rename {{ vcenter.folder_absolute_path }} {{ ocp_infrastructureName_hash.stdout}}"
+      when: ocp_major_version not in ["4.3","4.4"]
+
+    - name: Update the vcenter.folder_absolute_path for new hash
+      set_fact:
+        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+ocp_infrastructureName_hash.stdout}, recursive=True) }}"
+      when: vcenter.folder_absolute_path is defined and ocp_major_version not in ["4.3","4.4"]
+# -------------------------------------------------------------
+
+    - name: Display the new absolute folder path of the vCenter folder
+      debug:
+        var: vcenter.folder_absolute_path
+        verbosity: 1

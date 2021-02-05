@@ -1,0 +1,113 @@
+ocpconfig:
+  #--------------------------------------------
+  # Parameter to setup your helper/bastion vm
+  #--------------------------------------------
+  helper_vm:
+    template: rh79-01
+    hostname: agp-inf  # The vmname/hostname can only support chars, do not use '-' or '_'
+    public_network: VM Network
+    public_nic: ens192
+    public_ip: 9.112.238.114
+    public_netmask: 255.255.255.0
+    public_gateway : 9.112.238.1
+    public_dnsdomain: cn.ibm.com
+    public_dns1: 9.112.252.58
+    public_dns2: 9.110.183.72
+    private_nic: ens224
+    private_ip: 10.0.2.114
+    rootpassword: Dem0@ring
+    memory_mb: 16384
+    num_cpus: 8
+    disksize: 500
+    # if you do not want use http/https proxy, just level proxy_env blank
+    # sample [proxy_env: http://9.30.189.71:3128/]
+    proxy_env: http://xcoc-proxy.fyre.ibm.com:3128/
+    workdir: /root/ocp4-vsphere-automation
+  #--------------------------------------------
+
+  bootstrap_ignition_url: "http://{{'{{'}}helper_vm.private_ip{{'}}'}}:8080/ignition/bootstrap.ign"
+
+  config:
+    provider: vsphere
+    base_domain: cn.ibm.com
+    cluster_name: agp
+    fips: false
+    pull_secret: {"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2xsaXhpbm4xYmFoeXkzYzlneGVjNHp2bHhvZG01OTVya286NkhNOEswR0oxTDdMNzhYTTBNOVUwU1NFTkxGSERZMjMzT0VUOVVEV1NQVjZPTkdYNE83QVI0Tzc4R1dYMjlBRw==","email":"llixinn@cn.ibm.com"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2xsaXhpbm4xYmFoeXkzYzlneGVjNHp2bHhvZG01OTVya286NkhNOEswR0oxTDdMNzhYTTBNOVUwU1NFTkxGSERZMjMzT0VUOVVEV1NQVjZPTkdYNE83QVI0Tzc4R1dYMjlBRw==","email":"llixinn@cn.ibm.com"},"registry.connect.redhat.com":{"auth":"NTMwNDkwMTF8dWhjLTFiQWh5eTNjOUdYRWM0WnZMeE9kTTU5NVJrbzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTJZVGcxTmpJM1kyRm1NV0kwTTJReFlUWm1OR0V4TkdOak5EUTVaRGszWXlKOS5zU0kzMncwS0xJYlh5akZNWW5DZjk4NVk2SU9hN0tDRmgtTENzcnVOemNIcGJGLTVYT2Ewem1NVDVxbW53RlNONC1DTFJPeC1Ba1BtM2JkZ2dBQWFoM3ZLQ0xGLVNMM1hESF94VGxxOXM0RUQwdnk4R3lMMWxRbElUOV8zMmtYUjIwVUg4djhDVWJXRXZteGVmUXFlaGcwVmp2TnhzeE8xdjJZVEpPcWo5ZmgwV1FuTTVmZjBwOW41Y0VTQVA5eFFCc25BSzRLUnU4RERJMU5kUHVJQVRNaGZsS3ItTkI2Q3VPSERPRUZCQzdXcjRoVmxFblBWZVVYS05rNVk1M09WMjhpdndFcmVseDd3ODBKMm1EaFduY3lMM2Fuc0pXRG9oUDlKV2NTcTZUNDdPbFk4M0pZazBYVTVLVXE3MDV2cmp5eXFHUE9veVJqU3VPQWw0ekpGUTNOdTQzdE8teU5YcS00aVZINXExQnp6akYwMzdfSkdyQ3VvT2g1NkY0ampSWDRLX1hYaGhnYk5na1ptR25SWXpyTW42b0lrRGFySncwQ2w1cjBlbXczSThrSmMxME5SNjktdnhWSlpsS25kMUE5UjBzN1dUblZQbEJQUnlSMUxkNkQtdW9IY2htRjRlV0d1RzNJYXBTMHE2TzRZTDJqMkFQY05Ndndlb1ZDU01YMWd6cGo4VXNvSmlHRkl6MHJUcW1pRC1mdG45aEY1Vi15Y1JwWk9xY0M3RmVkWW9ubGVvUnV4bUlUNGJuUkk0Y0VETGpiN1VNRHVTNHRSZDNqYkx0bU4wcnByY2xza3VnNjNuRF9FbDBuQ3k0aERVQkYzU0FwT2FaYXBmMmh1ZnFoNmp1dXEyX0Y0VHdJTmxsWWFFbVlaYTV2V1pMLUdMYmlHMF9IZjB6VQ==","email":"llixinn@cn.ibm.com"},"registry.redhat.io":{"auth":"NTMwNDkwMTF8dWhjLTFiQWh5eTNjOUdYRWM0WnZMeE9kTTU5NVJrbzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTJZVGcxTmpJM1kyRm1NV0kwTTJReFlUWm1OR0V4TkdOak5EUTVaRGszWXlKOS5zU0kzMncwS0xJYlh5akZNWW5DZjk4NVk2SU9hN0tDRmgtTENzcnVOemNIcGJGLTVYT2Ewem1NVDVxbW53RlNONC1DTFJPeC1Ba1BtM2JkZ2dBQWFoM3ZLQ0xGLVNMM1hESF94VGxxOXM0RUQwdnk4R3lMMWxRbElUOV8zMmtYUjIwVUg4djhDVWJXRXZteGVmUXFlaGcwVmp2TnhzeE8xdjJZVEpPcWo5ZmgwV1FuTTVmZjBwOW41Y0VTQVA5eFFCc25BSzRLUnU4RERJMU5kUHVJQVRNaGZsS3ItTkI2Q3VPSERPRUZCQzdXcjRoVmxFblBWZVVYS05rNVk1M09WMjhpdndFcmVseDd3ODBKMm1EaFduY3lMM2Fuc0pXRG9oUDlKV2NTcTZUNDdPbFk4M0pZazBYVTVLVXE3MDV2cmp5eXFHUE9veVJqU3VPQWw0ekpGUTNOdTQzdE8teU5YcS00aVZINXExQnp6akYwMzdfSkdyQ3VvT2g1NkY0ampSWDRLX1hYaGhnYk5na1ptR25SWXpyTW42b0lrRGFySncwQ2w1cjBlbXczSThrSmMxME5SNjktdnhWSlpsS25kMUE5UjBzN1dUblZQbEJQUnlSMUxkNkQtdW9IY2htRjRlV0d1RzNJYXBTMHE2TzRZTDJqMkFQY05Ndndlb1ZDU01YMWd6cGo4VXNvSmlHRkl6MHJUcW1pRC1mdG45aEY1Vi15Y1JwWk9xY0M3RmVkWW9ubGVvUnV4bUlUNGJuUkk0Y0VETGpiN1VNRHVTNHRSZDNqYkx0bU4wcnByY2xza3VnNjNuRF9FbDBuQ3k0aERVQkYzU0FwT2FaYXBmMmh1ZnFoNmp1dXEyX0Y0VHdJTmxsWWFFbVlaYTV2V1pMLUdMYmlHMF9IZjB6VQ==","email":"llixinn@cn.ibm.com"}}}
+  vcenter:
+    ip: 9.112.238.90
+    datastore: ds_demo01
+    network: DPortGroup
+    service_account_username: Administrator@mmlab.cn.ibm.com
+    service_account_password: 'Dem0@18m'
+    admin_username: Administrator@mmlab.cn.ibm.com
+    admin_password: 'Dem0@18m'
+    datacenter: Datacenter
+    cluster: cluster0
+    resource_pool: demopool
+    folder_absolute_path: "/Datacenter/vm/{{'{{'}} config.cluster_name {{'}}'}}"
+    vm_power_state: poweredon
+    template_name: rhcos-vmware
+  download:
+    clients_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.5.20
+    dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.5/4.5.6
+    govc: https://github.com/vmware/govmomi/releases/download/v0.23.0/govc_linux_amd64.gz
+
+  bootstrap_vms:
+    - { name: "agpbt", macaddr: "00:50:56:a1:14:a0", ipaddr: "10.0.2.40", cpu: 8, ram: 24576, disksize: 50 }
+  master_vms:
+    - { name: "agpc1", macaddr: "00:50:56:a1:14:a1", ipaddr: "10.0.2.41", cpu: 8, ram: 16384, disksize: 50 }
+    - { name: "agpc2", macaddr: "00:50:56:a1:14:a2", ipaddr: "10.0.2.42", cpu: 8, ram: 16384, disksize: 50 }
+    - { name: "agpc3", macaddr: "00:50:56:a1:14:a3", ipaddr: "10.0.2.43", cpu: 8, ram: 16384, disksize: 50 }
+  worker_vms:
+    - { name: "agpw1", macaddr: "00:50:56:a1:14:a4", ipaddr: "10.0.2.44", cpu: 8, ram: 16384, disksize: 100 }
+    - { name: "agpw2", macaddr: "00:50:56:a1:14:a5", ipaddr: "10.0.2.45", cpu: 8, ram: 16384, disksize: 100 }
+  #  - { name: "agpw3", macaddr: "00:50:56:a1:14:a6", ipaddr: "10.0.2.46", cpu: 8, ram: 32768, disksize: 100 }
+  #  - { name: "agpw4", macaddr: "00:50:56:a1:14:a7", ipaddr: "10.0.2.47", cpu: 8, ram: 32768, disksize: 100 }
+  #  - { name: "agpw5", macaddr: "00:50:56:a1:14:a8", ipaddr: "10.0.2.48", cpu: 8, ram: 32768, disksize: 100 }
+  #  - { name: "agpw6", macaddr: "00:50:56:a1:14:a9", ipaddr: "10.0.2.49", cpu: 8, ram: 32768, disksize: 100 }
+  # add more worker nodes here if required.
+  #  - { name: "worker2", macaddr: "00:50:56:a8:aa:a7", ipaddr: "10.0.2.122"}
+
+
+  # Custermize your cluster nodes hardware configuration:
+#  hwconfig:
+#    bootstrap: {num_cpus: 8, memory_mb: 8192, size_gb: 50}
+#    master: {num_cpus: 8, memory_mb: 24576, size_gb: 50}
+#    worker: {num_cpus: 16, memory_mb: 32768, size_gb: 100}
+
+  # Custermize your cluster nodes network configuration:
+  static_ip:
+    gateway: 10.0.2.254
+    netmask: 255.255.255.0
+    network_interface_name: ens192
+
+  # If you don't have direct internet access, you can leverage the proxy, set it to true if required.
+  proxy:
+    enabled: false
+    http_proxy: http://9.111.141.91:3128/
+    https_proxy: http://9.111.141.91:3128/
+    no_proxy: "{{'{{'}} config.cluster_name {{'}}'}}.{{'{{'}} config.base_domain {{'}}'}}"
+    cert_content:
+
+  # Used for a restricted network setup, set enabled to true will help you setup the local mirror registry
+  registry:
+    enabled: true
+    registry_image: docker.io/library/registry:2
+    product_repo: openshift-release-dev
+    product_release_name: ocp-release
+    product_release_version: 4.5.20-x86_64
+    username: ansible
+    password: ansible
+    email: user@awesome.org
+    cert_content:
+    host: "registry.{{'{{'}} config.cluster_name {{'}}'}}.{{'{{'}} config.base_domain {{'}}'}}"
+    port: 5000
+    repo: ocp4/openshift4
+
+  ntp:
+    custom: false
+    ntp_server_list:
+      - 0.rhel.pool.ntp.org
+      - 1.rhel.pool.ntp.org
+  storage:
+    setup_nfs_sc: true  # decide whether you want setup nfs-storage-provisioner immediatly after ocp ready

@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Generate var file to landing extra vars
+      copy:
+        content: "{{ ocpconfig | to_nice_yaml }}"
+        dest: "current_ocpconfig.yml"
+    - name: Loading current ocpconfig var file
+      include_vars: current_ocpconfig.yml
+
+    - name: Prepare helper vars-static var file
+      template:
+        src: vars-static.j2
+        dest: "{{ playbook_dir }}/vars-static.yml"
+        mode: 0644
+        force: yes
+    - name: Create VM for bastion host
+      import_role:
+        name: bastion
+        tasks_from: create_vm_bastion
+

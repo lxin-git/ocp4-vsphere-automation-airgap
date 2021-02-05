@@ -1,0 +1,166 @@
+
+  - name: Copy over generated ignition files to webserver
+    import_role:
+      name: webserver
+      tasks_from: copy_ign_files
+
+  - name: Download the installer raw.gz file to webserver
+    import_role:
+      name: webserver
+      tasks_from: download_raw_installer_files
+
+  - name: Reset the vcenter.vm_power_state to poweredoff
+    set_fact:
+      vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
+
+  - name: Run steps specific to DHCP and PXE boot
+    import_role:
+      name: dhcp_pxe
+
+
+
+
+  - name: Download Openshift 4 ISO file as rhcos-installer.iso
+    get_url:
+      url: "{{ download.iso }}"
+      dest: "{{ iso_dir }}/rhcos-installer.iso"
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+
+  - name: Get the sha265sum of the rhcos-installer.iso file
+    stat:
+      get_checksum: yes
+      checksum_algorithm: sha256
+      path: "{{ iso_dir }}/rhcos-installer.iso"
+    register: st
+
+  - name: Clean iso mount path directory
+    file:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: absent
+
+  - name: Create the iso mount path (if one doesn't exist already)
+    file:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: directory
+      mode: '0775'
+      recurse: yes
+
+  - name: Clean duplicate iso mount path directory
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      state: absent
+
+  - name: Create duplicate dir of the iso mount path (if one doesn't exist already)
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      state: directory
+      mode: '0775'
+      recurse: yes
+
+  - name: Unmount the iso mount path before mount
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: absent
+    become: true
+
+  - name: Mount the rhcos-installer.iso onto the mount path {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      src: "{{ iso_dir }}/rhcos-installer.iso"
+      fstype: iso9660
+      opts: ro
+      state: mounted
+    become: true
+
+  - name: Synchronization between the mount path and dup
+    # Here I change synchronize to copy to make it simple, since ansible 2.8- will cause broke pipe 32 error.
+    # And synchronize have to use [delegate_to: "{{ inventory_hostname }}"] in our case
+    #synchronize:
+    copy:
+      remote_src: yes
+      src: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}/"
+      dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+
+  - name: Recursively apply permission of 775 to {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      mode: '0775'
+      recurse: yes
+
+  - name: Create the iso_updated_dir to store the updated iso patch files
+    file:
+      path: "{{ iso_updated_dir }}/files"
+      state: directory
+      mode: '0755'
+      recurse: yes
+
+  - name: Make a copy of the isolinux.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      remote_src: yes
+      src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
+      dest: "{{ iso_updated_dir }}/files/"
+
+  - name: Make a copy of the grub.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      remote_src: yes
+      src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
+      dest: "{{ iso_updated_dir }}/files/"
+
+  - name: Unmount the iso mount path
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: absent
+    become: true
+
+  - name: Generate kernel params for bootstrap
+    vars:
+      machine_name: "{{ item.name }}"
+      machine_type: bootstrap
+      machine_ip: "{{ item.ipaddr }}"
+    template:
+      src: kernel-params.j2
+      dest: "{{ iso_updated_dir }}/files/{{item.name}}-kernel-params.txt"
+    loop: "{{ bootstrap_vms }}"
+
+  - name: Generate kernel params for all masters
+    vars:
+      machine_name: "{{ item.name }}"
+      machine_type: master
+      machine_ip: "{{ item.ipaddr }}"
+    template:
+      src: kernel-params.j2
+      dest: "{{ iso_updated_dir }}/files/{{item.name}}-kernel-params.txt"
+    loop: "{{ master_vms }}"
+
+  - name: Generate kernel params for all workers
+    vars:
+      machine_name: "{{ item.name }}"
+      machine_type: worker
+      machine_ip: "{{ item.ipaddr }}"
+      #helper_vm_ip: "{{ helper_vm.private_ip }}"
+    template:
+      src: kernel-params.j2
+      dest: "{{ iso_updated_dir }}/files/{{item.name}}-kernel-params.txt"
+    loop: "{{ worker_vms }}"
+
+  - name: Generate custom iso files for all VMs
+    include: generate_custom_iso.yml
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+
+  - name: Upload all the custom generated ISOs to the datastore
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/{{item.name}}.iso {{item.name}}.iso"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+
+  - name: Add a cdrom device to all the OpenShift VMs
+    command: "govc device.cdrom.add -vm {{ item.name }}"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+
+  - name: Insert the uploaded ISO file {{item.name}}.iso as cdrom to VM {{ item.name }}
+    command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{item.name}}.iso"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+
+  - name: Power-On all the VMs
+    command: "govc vm.power -on {{ item.name }}"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"

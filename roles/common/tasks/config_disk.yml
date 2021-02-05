@@ -1,0 +1,16 @@
+- name: Transfer the script for extend the root disk
+  copy:
+    src: ../files/extdisk.sh
+    dest: /tmp/extdisk.sh
+    mode: 755
+
+- name: Extend the rootvg with free disk space
+  command: sh /tmp/extdisk.sh
+
+- name: Check the current root filesystem
+  command: df -h /
+  register: dfoutput
+
+- name: Display the use of root filesystem
+  debug:
+    msg: "{{ dfoutput.stdout }}"

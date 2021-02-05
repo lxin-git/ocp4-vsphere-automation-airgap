@@ -1,0 +1,173 @@
+  - name: Download the ova file
+    get_url:
+      url: "{{ download.ova }}"
+      dest: "{{ helper_vm.workdir }}/downloads/{{ vcenter.template_name }}.ova"
+      validate_certs: no
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+    when: skip_ova is not defined
+
+  - name: Deploy the OVF template into the folder
+    vmware_deploy_ovf:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.admin_username }}"
+      password: "{{ vcenter.admin_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      datastore: "{{ vcenter.datastore }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: '{{ vcenter.template_name }}'
+      allow_duplicates: False
+      disk_provisioning: thick
+      networks: "{u'VM Network':u'{{ vcenter.network }}'}"
+      ova: "{{ helper_vm.workdir }}/downloads/{{ vcenter.template_name }}.ova"
+      power_on: False
+      validate_certs: False
+    when: skip_ova is not defined
+
+  - name: Remove the Network Adapter
+    command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
+    when: skip_ova is not defined
+
+  - name: Update VM options on the template
+    #command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
+
+    # -- remove latency high config to avoid memory alert in vcenter.
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"
+    when: skip_ova is not defined
+
+  - name: Fetch bootstrap.ign b64encode content
+    slurp:
+      src: "{{ helper_vm.workdir }}/install-dir/bootstrap.ign"
+    register: bootstrapign
+
+  - name: Fetch master.ign b64encode content
+    slurp:
+      src: "{{ helper_vm.workdir }}/install-dir/master.ign"
+    register: masterign
+
+  - name: Fetch worker.ign b64encode content
+    slurp:
+      src: "{{ helper_vm.workdir }}/install-dir/worker.ign"
+    register: workerign
+
+  - name: "Bootstrap base64"
+    debug:
+      msg: "{{ bootstrapign['content'] }}"
+      verbosity: 1
+
+  - name: "Master base64"
+    debug:
+      msg: "{{ masterign['content'] }}"
+      verbosity: 1
+
+  - name: "Worker base64 "
+    debug:
+      msg: "{{ workerign['content'] }}"
+      verbosity: 1
+
+  - name: Create bootstrap VM from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      cluster: "{{ vcenter.cluster}}"
+      resource_pool: "{{ vcenter.resource_pool }}"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.template_name }}"
+      disk:
+      - size_gb: "{{ item.disksize }}"
+        type: None
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.macaddr }}"
+      wait_for_ip_address: no
+      customvalues:
+        - key: guestinfo.ignition.config.data
+          value: "{{ bootstrapign['content'] }}"
+        - key: guestinfo.ignition.config.data.encoding
+          value: base64
+        - key: guestinfo.afterburn.initrd.network-kargs
+          value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:{{ static_ip.network_interface_name }}:off:{{ helper_vm.private_ip }}"
+          #value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:{{ static_ip.network_interface_name }}:none nameserver={{ helper_vm.private_ip }}"
+
+    loop: "{{ bootstrap_vms }}"
+
+  - name: Create master VMs from ther template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      cluster: "{{ vcenter.cluster}}"
+      resource_pool: "{{ vcenter.resource_pool }}"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.template_name }}"
+      disk:
+      - size_gb: "{{ item.disksize }}"
+        type: None
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.macaddr }}"
+      wait_for_ip_address: no
+      customvalues:
+       - key: guestinfo.ignition.config.data
+         value: "{{ masterign['content'] }}"
+       - key: guestinfo.ignition.config.data.encoding
+         value: base64
+       - key: guestinfo.afterburn.initrd.network-kargs
+         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:{{ static_ip.network_interface_name }}:off:{{ helper_vm.private_ip }}"
+         #value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:{{ static_ip.network_interface_name }}:none nameserver={{ helper_vm.private_ip }}"
+    loop: "{{ master_vms }}"
+
+  - name: Create worker VMs from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      cluster: "{{ vcenter.cluster}}"
+      resource_pool: "{{ vcenter.resource_pool }}"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.template_name }}"
+      disk:
+      - size_gb: "{{ item.disksize }}"
+        type: None
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.macaddr }}"
+      wait_for_ip_address: no
+      customvalues:
+       - key: guestinfo.ignition.config.data
+         value: "{{ workerign['content'] }}"
+       - key: guestinfo.ignition.config.data.encoding
+         value: base64
+       - key: guestinfo.afterburn.initrd.network-kargs
+         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:{{ static_ip.network_interface_name }}:off:{{ helper_vm.private_ip }}"
+         #value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:{{ static_ip.network_interface_name }}:none nameserver={{ helper_vm.private_ip }}"
+    loop: "{{ worker_vms }}"
