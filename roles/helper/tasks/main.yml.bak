@@ -11,15 +11,15 @@
   # underscores in hostnames are illegal.
   pre_tasks:
   - name: validate hostnames
-    import_tasks: validate_host_names.yaml
+    import_tasks: validate_host_names.yml
 
   tasks:
   - name: generate ssh keys
-    import_tasks: generate_ssh_keys.yaml
+    import_tasks: generate_ssh_keys.yml
     when: ssh_gen_key
 
   - name: set setup facts
-    include: set_facts_.yaml
+    include: set_facts_.yml
 
   - name: Install needed packages
     package:
@@ -529,7 +529,7 @@
         state: present
 
     - name: Setup Registry
-      import_tasks: setup_registry.yaml
+      import_tasks: setup_registry.yml
 
   - name:  Information about this install
     debug:

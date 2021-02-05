@@ -1,31 +1,15 @@
 ---
 # Setup OCP4 Helper Node
-  - name: generate ssh keys
-    import_tasks: generate_ssh_keys.yaml
-    when: ssh_gen_key
-
   - name: set setup facts
-    include: set_facts_.yaml
+    include: set_facts_.yml
+    
+  - name: Process all online tasks if it is a non-restricted network
+    import_tasks: online_tasks.yml
+    when: not restricted_network
 
-  - name: Install needed packages
-    package:
-      name: "{{ packages }}"
-      state: present
-    environment:
-      http_proxy: "{{ helper_vm.proxy_env }}"
-      https_proxy: "{{ helper_vm.proxy_env }}"
-
-  - name: Install packages for DHCP/PXE install
-    package:
-      name: "{{ dhcppkgs }}"
-      state: present
-    when: not staticips
-
-  - name: Install additional package for Intel platforms
-    package:
-      name: "{{ syslinuxpkgs }}"
-      state: present
-    when: not staticips and not ppc64le
+  - name: generate ssh keys
+    import_tasks: generate_ssh_keys.yml
+    when: ssh_gen_key
 
   - name: Write out dhcp file
     template:
@@ -449,14 +433,6 @@
     with_items:
       - /usr/local/src/helm
 
-  - name: Downloading helm source binary tarball
-    get_url:
-      url: "{{ helm_source }}"
-      dest: /usr/local/src/helm/helm-client.tar.gz
-    environment:
-      http_proxy: "{{ helper_vm.proxy_env }}"
-      https_proxy: "{{ helper_vm.proxy_env }}"
-
   - name: Unarchiving helm tarball
     unarchive:
       src: /usr/local/src/helm/helm-client.tar.gz
@@ -482,12 +458,6 @@
       mode: '0755'
       remote_src: true
     when: ppc64le
-
-  - name: Downloading filetranspiler source
-    git:
-      repo: https://github.com/ashcrow/filetranspiler
-      dest: /usr/local/src/filetranspiler
-    when: install_filetranspiler
 
   - name: Building filetranspiler
     shell: "podman build /usr/local/src/filetranspiler -t filetranspiler:latest"
@@ -530,7 +500,7 @@
         state: present
 
     - name: Setup Registry
-      import_tasks: setup_registry.yaml
+      import_tasks: setup_registry.yml
 
   - name:  Information about this install
     debug:

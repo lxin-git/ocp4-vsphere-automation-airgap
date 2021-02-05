@@ -49,7 +49,7 @@
     - name: include vars-static
       include_vars: vars-static.yml
     - name: validate hostnames
-      import_tasks: roles/helper/tasks/validate_host_names.yaml
+      import_tasks: roles/helper/tasks/validate_host_names.yml
     - name: Start helper function setup
       import_role:
         name: helper

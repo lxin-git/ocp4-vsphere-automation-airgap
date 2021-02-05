@@ -15,30 +15,30 @@
         dest: "{{ playbook_dir }}/vars-static.yml"
         mode: 0644
         force: yes
-    - name: Create VM for bastion host
-      import_role:
-        name: bastion
-        tasks_from: create_vm_bastion
+    #- name: Create VM for bastion host
+    #  import_role:
+    #    name: bastion
+    #    tasks_from: create_vm_bastion
 
-    - name: Add host to group [bastion]
-      add_host:
-        name: "{{ helper_vm.public_ip }}"
-        groups: bastion
-        ansible_ssh_user: "root"
-        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
-        host_key_checking: False
-        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    #- name: Add host to group [bastion]
+    #  add_host:
+    #    name: "{{ helper_vm.public_ip }}"
+    #    groups: bastion
+    #    ansible_ssh_user: "root"
+    #    ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
+    #    host_key_checking: False
+    #    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    #
+    #- name: Add host to group [webservers]
+    #  add_host:
+    #    name: "{{ helper_vm.public_ip }}"
+    #    groups: webservers
+    #    ansible_ssh_user: "root"
+    #    ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
+    #    host_key_checking: False
+    #    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
-    - name: Add host to group [webservers]
-      add_host:
-        name: "{{ helper_vm.public_ip }}"
-        groups: webservers
-        ansible_ssh_user: "root"
-        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
-        host_key_checking: False
-        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-
-- hosts: bastion
+- hosts: localhost
   gather_facts: True
   vars_files:
     - roles/helper/vars/main.yml
@@ -60,10 +60,12 @@
     - name: Start helper function setup
       import_role:
         name: helper
+
     - name: Set the cache of all the download links
       import_role:
         name: cache
-      when: not restricted_network  
+      when: not restricted_network
+
     - name: Create local automation directory
       file:
         path: "{{ helper_vm.workdir }}"
@@ -72,6 +74,7 @@
     - name: Run all the common tasks
       import_role:
         name: common
+
     - name: Run the vmware role to setup vCenter folder
       import_role:
         name: vmware

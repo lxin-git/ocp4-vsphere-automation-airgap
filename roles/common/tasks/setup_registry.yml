@@ -32,13 +32,6 @@
         state: absent
         regexp: 'mirror-registry'
 
-    - name: Pull the registry docker image
-      podman_image:
-        name: "{{ registry.registry_image }}"
-      environment:
-        http_proxy: "{{ helper_vm.proxy_env }}"
-        https_proxy: "{{ helper_vm.proxy_env }}"
-
     - name: Generate mirror-registry service file
       template:
         src: ../templates/mirror-registry.service.j2
@@ -58,20 +51,6 @@
       until: pod_state.stdout != ""
       retries: 4
       delay: 15
-
-    #- name: Run the registry pod
-    #  command: |
-    #    podman run --name mirror-registry -p {{ registry.port }}:5000 \
-    #        -v /opt/registry/data:/var/lib/registry:z \
-    #        -v /opt/registry/auth:/auth:z \
-    #        -e "REGISTRY_AUTH=htpasswd" \
-    #        -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
-    #        -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
-    #        -v /opt/registry/certs:/certs:z \
-    #        -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
-    #        -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
-    #        -d docker.io/library/registry:2
-    #  become: true
 
     - name: Open up the required ports thru firewall
       firewalld:

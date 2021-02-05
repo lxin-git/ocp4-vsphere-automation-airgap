@@ -1,0 +1,26 @@
+---
+staticips: true
+helper:
+  name: "agp-inf"
+  ipaddr: "10.0.2.114"
+  networkifacename: "ens224"
+dns:
+  domain: "cn.ibm.com"
+  clusterid: "agp"
+  forwarder1: "9.112.252.58"
+  forwarder2: "9.110.183.72"
+bootstrap:
+  name: "agpbt"
+  ipaddr: "10.0.2.40"
+masters:
+  - name: "agpc1"
+    ipaddr: "10.0.2.41"
+  - name: "agpc2"
+    ipaddr: "10.0.2.42"
+  - name: "agpc3"
+    ipaddr: "10.0.2.43"
+workers:
+  - name: "agpw1"
+    ipaddr: "10.0.2.44"
+  - name: "agpw2"
+    ipaddr: "10.0.2.45"

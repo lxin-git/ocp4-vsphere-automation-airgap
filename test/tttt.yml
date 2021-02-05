@@ -56,7 +56,7 @@
     - name: include vars-static
       include_vars: vars-static.yml
     - name: validate hostnames
-      import_tasks: roles/helper/tasks/validate_host_names.yaml
+      import_tasks: roles/helper/tasks/validate_host_names.yml
 
     - name: Get current openshift-install minor version
       shell: "{{ helper_vm.workdir }}/bin/openshift-install version|head -n 1|awk '{print $2}'|cut -f2 -d'.'"

@@ -1,0 +1,48 @@
+# Dedicated task for all required package installation
+  - name: Install needed packages
+    package:
+      name: "{{ packages }}"
+      state: present
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+
+  - name: Install packages for DHCP/PXE install
+    package:
+      name: "{{ dhcppkgs }}"
+      state: present
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+    when: not staticips
+
+  - name: Install additional package for Intel platforms
+    package:
+      name: "{{ syslinuxpkgs }}"
+      state: present
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+    when: not staticips and not ppc64le
+
+  - name: Create helm source directory
+    file:
+      path: "{{ item }}"
+      state: directory
+      mode: 0755
+    with_items:
+      - /usr/local/src/helm
+
+  - name: Downloading helm source binary tarball
+    get_url:
+      url: "{{ helm_source }}"
+      dest: /usr/local/src/helm/helm-client.tar.gz
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+
+  - name: Downloading filetranspiler source
+    git:
+      repo: https://github.com/ashcrow/filetranspiler
+      dest: /usr/local/src/filetranspiler
+    when: install_filetranspiler
