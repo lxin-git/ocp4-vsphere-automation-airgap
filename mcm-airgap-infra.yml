@@ -4,18 +4,18 @@ ocpconfig:
   #--------------------------------------------
 
   helper_vm:
-    template: rh79-01
-    hostname: agp-inf  # The vmname/hostname can only support chars, do not use '-' or '_'
+    template: rh79-00
+    hostname: mcm-inf  # The vmname/hostname can only support chars, do not use '-' or '_'
     public_network: VM Network
     public_nic: ens192
-    public_ip: 9.112.238.114
+    public_ip: 9.112.238.116
     public_netmask: 255.255.255.0
     public_gateway : 9.112.238.1
     public_dnsdomain: cn.ibm.com
     public_dns1: 9.112.252.58
     public_dns2: 9.110.183.72
     private_nic: ens224
-    private_ip: 10.0.2.114
+    private_ip: 192.168.60.20
     rootpassword: Dem0@ring
     memory_mb: 16384
     num_cpus: 8
@@ -31,7 +31,7 @@ ocpconfig:
   config:
     provider: vsphere
     base_domain: cn.ibm.com
-    cluster_name: agp
+    cluster_name: mcm
     fips: false
     pull_secret: {"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2xsaXhpbm4xYmFoeXkzYzlneGVjNHp2bHhvZG01OTVya286NkhNOEswR0oxTDdMNzhYTTBNOVUwU1NFTkxGSERZMjMzT0VUOVVEV1NQVjZPTkdYNE83QVI0Tzc4R1dYMjlBRw==","email":"llixinn@cn.ibm.com"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2xsaXhpbm4xYmFoeXkzYzlneGVjNHp2bHhvZG01OTVya286NkhNOEswR0oxTDdMNzhYTTBNOVUwU1NFTkxGSERZMjMzT0VUOVVEV1NQVjZPTkdYNE83QVI0Tzc4R1dYMjlBRw==","email":"llixinn@cn.ibm.com"},"registry.connect.redhat.com":{"auth":"NTMwNDkwMTF8dWhjLTFiQWh5eTNjOUdYRWM0WnZMeE9kTTU5NVJrbzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTJZVGcxTmpJM1kyRm1NV0kwTTJReFlUWm1OR0V4TkdOak5EUTVaRGszWXlKOS5zU0kzMncwS0xJYlh5akZNWW5DZjk4NVk2SU9hN0tDRmgtTENzcnVOemNIcGJGLTVYT2Ewem1NVDVxbW53RlNONC1DTFJPeC1Ba1BtM2JkZ2dBQWFoM3ZLQ0xGLVNMM1hESF94VGxxOXM0RUQwdnk4R3lMMWxRbElUOV8zMmtYUjIwVUg4djhDVWJXRXZteGVmUXFlaGcwVmp2TnhzeE8xdjJZVEpPcWo5ZmgwV1FuTTVmZjBwOW41Y0VTQVA5eFFCc25BSzRLUnU4RERJMU5kUHVJQVRNaGZsS3ItTkI2Q3VPSERPRUZCQzdXcjRoVmxFblBWZVVYS05rNVk1M09WMjhpdndFcmVseDd3ODBKMm1EaFduY3lMM2Fuc0pXRG9oUDlKV2NTcTZUNDdPbFk4M0pZazBYVTVLVXE3MDV2cmp5eXFHUE9veVJqU3VPQWw0ekpGUTNOdTQzdE8teU5YcS00aVZINXExQnp6akYwMzdfSkdyQ3VvT2g1NkY0ampSWDRLX1hYaGhnYk5na1ptR25SWXpyTW42b0lrRGFySncwQ2w1cjBlbXczSThrSmMxME5SNjktdnhWSlpsS25kMUE5UjBzN1dUblZQbEJQUnlSMUxkNkQtdW9IY2htRjRlV0d1RzNJYXBTMHE2TzRZTDJqMkFQY05Ndndlb1ZDU01YMWd6cGo4VXNvSmlHRkl6MHJUcW1pRC1mdG45aEY1Vi15Y1JwWk9xY0M3RmVkWW9ubGVvUnV4bUlUNGJuUkk0Y0VETGpiN1VNRHVTNHRSZDNqYkx0bU4wcnByY2xza3VnNjNuRF9FbDBuQ3k0aERVQkYzU0FwT2FaYXBmMmh1ZnFoNmp1dXEyX0Y0VHdJTmxsWWFFbVlaYTV2V1pMLUdMYmlHMF9IZjB6VQ==","email":"llixinn@cn.ibm.com"},"registry.redhat.io":{"auth":"NTMwNDkwMTF8dWhjLTFiQWh5eTNjOUdYRWM0WnZMeE9kTTU5NVJrbzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTJZVGcxTmpJM1kyRm1NV0kwTTJReFlUWm1OR0V4TkdOak5EUTVaRGszWXlKOS5zU0kzMncwS0xJYlh5akZNWW5DZjk4NVk2SU9hN0tDRmgtTENzcnVOemNIcGJGLTVYT2Ewem1NVDVxbW53RlNONC1DTFJPeC1Ba1BtM2JkZ2dBQWFoM3ZLQ0xGLVNMM1hESF94VGxxOXM0RUQwdnk4R3lMMWxRbElUOV8zMmtYUjIwVUg4djhDVWJXRXZteGVmUXFlaGcwVmp2TnhzeE8xdjJZVEpPcWo5ZmgwV1FuTTVmZjBwOW41Y0VTQVA5eFFCc25BSzRLUnU4RERJMU5kUHVJQVRNaGZsS3ItTkI2Q3VPSERPRUZCQzdXcjRoVmxFblBWZVVYS05rNVk1M09WMjhpdndFcmVseDd3ODBKMm1EaFduY3lMM2Fuc0pXRG9oUDlKV2NTcTZUNDdPbFk4M0pZazBYVTVLVXE3MDV2cmp5eXFHUE9veVJqU3VPQWw0ekpGUTNOdTQzdE8teU5YcS00aVZINXExQnp6akYwMzdfSkdyQ3VvT2g1NkY0ampSWDRLX1hYaGhnYk5na1ptR25SWXpyTW42b0lrRGFySncwQ2w1cjBlbXczSThrSmMxME5SNjktdnhWSlpsS25kMUE5UjBzN1dUblZQbEJQUnlSMUxkNkQtdW9IY2htRjRlV0d1RzNJYXBTMHE2TzRZTDJqMkFQY05Ndndlb1ZDU01YMWd6cGo4VXNvSmlHRkl6MHJUcW1pRC1mdG45aEY1Vi15Y1JwWk9xY0M3RmVkWW9ubGVvUnV4bUlUNGJuUkk0Y0VETGpiN1VNRHVTNHRSZDNqYkx0bU4wcnByY2xza3VnNjNuRF9FbDBuQ3k0aERVQkYzU0FwT2FaYXBmMmh1ZnFoNmp1dXEyX0Y0VHdJTmxsWWFFbVlaYTV2V1pMLUdMYmlHMF9IZjB6VQ==","email":"llixinn@cn.ibm.com"}}}
   vcenter:
@@ -54,18 +54,18 @@ ocpconfig:
     govc: https://github.com/vmware/govmomi/releases/download/v0.23.0/govc_linux_amd64.gz
 
   bootstrap_vms:
-    - { name: "agpbt", macaddr: "00:50:56:a1:14:a0", ipaddr: "10.0.2.40", cpu: 8, ram: 24576, disksize: 50 }
+    - { name: "mcmbt", macaddr: "00:50:56:a1:16:a0", ipaddr: "192.168.60.60", cpu: 8, ram: 24576, disksize: 50 }
   master_vms:
-    - { name: "agpc1", macaddr: "00:50:56:a1:14:a1", ipaddr: "10.0.2.41", cpu: 8, ram: 16384, disksize: 50 }
-    - { name: "agpc2", macaddr: "00:50:56:a1:14:a2", ipaddr: "10.0.2.42", cpu: 8, ram: 16384, disksize: 50 }
-    - { name: "agpc3", macaddr: "00:50:56:a1:14:a3", ipaddr: "10.0.2.43", cpu: 8, ram: 16384, disksize: 50 }
+    - { name: "mcmc1", macaddr: "00:50:56:a1:16:a1", ipaddr: "192.168.60.61", cpu: 8, ram: 16384, disksize: 50 }
+    - { name: "mcmc2", macaddr: "00:50:56:a1:16:a2", ipaddr: "192.168.60.62", cpu: 8, ram: 16384, disksize: 50 }
+    - { name: "mcmc3", macaddr: "00:50:56:a1:16:a3", ipaddr: "192.168.60.63", cpu: 8, ram: 16384, disksize: 50 }
   worker_vms:
-    - { name: "agpw1", macaddr: "00:50:56:a1:14:a4", ipaddr: "10.0.2.44", cpu: 8, ram: 16384, disksize: 100 }
-    - { name: "agpw2", macaddr: "00:50:56:a1:14:a5", ipaddr: "10.0.2.45", cpu: 8, ram: 16384, disksize: 100 }
-  #  - { name: "agpw3", macaddr: "00:50:56:a1:14:a6", ipaddr: "10.0.2.46", cpu: 8, ram: 32768, disksize: 100 }
-  #  - { name: "agpw4", macaddr: "00:50:56:a1:14:a7", ipaddr: "10.0.2.47", cpu: 8, ram: 32768, disksize: 100 }
-  #  - { name: "agpw5", macaddr: "00:50:56:a1:14:a8", ipaddr: "10.0.2.48", cpu: 8, ram: 32768, disksize: 100 }
-  #  - { name: "agpw6", macaddr: "00:50:56:a1:14:a9", ipaddr: "10.0.2.49", cpu: 8, ram: 32768, disksize: 100 }
+    - { name: "mcmw1", macaddr: "00:50:56:a1:16:a4", ipaddr: "192.168.60.64", cpu: 8, ram: 16384, disksize: 100 }
+    - { name: "mcmw2", macaddr: "00:50:56:a1:16:a5", ipaddr: "192.168.60.65", cpu: 8, ram: 16384, disksize: 100 }
+  #  - { name: "mcmw3", macaddr: "00:50:56:a1:14:a6", ipaddr: "10.0.2.46", cpu: 8, ram: 32768, disksize: 100 }
+  #  - { name: "mcmw4", macaddr: "00:50:56:a1:14:a7", ipaddr: "10.0.2.47", cpu: 8, ram: 32768, disksize: 100 }
+  #  - { name: "mcmw5", macaddr: "00:50:56:a1:14:a8", ipaddr: "10.0.2.48", cpu: 8, ram: 32768, disksize: 100 }
+  #  - { name: "mcmw6", macaddr: "00:50:56:a1:14:a9", ipaddr: "10.0.2.49", cpu: 8, ram: 32768, disksize: 100 }
   # add more worker nodes here if required.
   #  - { name: "worker2", macaddr: "00:50:56:a8:aa:a7", ipaddr: "10.0.2.122"}
 

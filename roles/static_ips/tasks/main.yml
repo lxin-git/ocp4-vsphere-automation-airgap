@@ -1,13 +1,10 @@
 
-  - name: Copy over generated ignition files to webserver
-    import_role:
-      name: webserver
-      tasks_from: copy_ign_files
-
   - name: Download the installer raw.gz file to webserver
-    import_role:
-      name: webserver
-      tasks_from: download_raw_installer_files
+    when: restricted_network|default(False) == False
+    include: download_raw_installer_files.yml
+
+  - name: Copy over generated ignition files to webserver
+    include: copy_ign_files.yml
 
   - name: Reset the vcenter.vm_power_state to poweredoff
     set_fact:

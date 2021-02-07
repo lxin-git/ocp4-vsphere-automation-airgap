@@ -44,13 +44,13 @@
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
         no_proxy: "{{ config.cluster_name }}.{{ config.base_domain }}"
-      when: not restricted_network
+      when: restricted_network|default(False) == False and skip_sync_mirror|default(False) == False
 
     - name: Mirror the registry from local image path
       command: |
         oc image mirror -a "{{ helper_vm.workdir }}/install-dir/pull-secret.json" \
         --from-dir="{{ registry.offline_image_path }}"/mirror "file://openshift/release:{{ registry.product_release_name.split("-")[0] }}*" "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}"
-      when: restricted_network and registry.offline_image_path is defined
+      when: restricted_network|default(False) == True and registry.offline_image_path is defined
 
     - name: Extract openshift-install from registry
       command: |
@@ -59,6 +59,7 @@
         --command=openshift-install \
         --to={{ helper_vm.workdir }}/bin \
         "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
+      when: skip_sync_mirror|default(False) == False
 
     - name: Point the pull secret to the local registry
       set_fact:

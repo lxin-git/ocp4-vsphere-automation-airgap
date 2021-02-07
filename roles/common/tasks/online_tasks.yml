@@ -62,6 +62,14 @@
         https_proxy: "{{ helper_vm.proxy_env }}"
       become: true
 
+    - name: Pull the registry docker image
+      podman_image:
+        name: "{{ registry.registry_image }}"
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"
+      when: registry.enabled
+
     - name: Clean up existing bin, install-dir and downloads folders
       file:
         path: "{{ helper_vm.workdir }}/{{ item }}"
@@ -88,7 +96,6 @@
         url: "{{ download.openshiftClient }}"
         dest: "{{ helper_vm.workdir }}/downloads/oc_client.tar.gz"
         validate_certs: no
-        force: yes
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
@@ -99,7 +106,6 @@
         url: "{{ download.openshiftInstall }}"
         dest: "{{ helper_vm.workdir }}/downloads/openshift_install.tar.gz"
         validate_certs: no
-        force: yes
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
@@ -113,15 +119,6 @@
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
-
-
-    - name: Pull the registry docker image
-      podman_image:
-        name: "{{ registry.registry_image }}"
-      environment:
-        http_proxy: "{{ helper_vm.proxy_env }}"
-        https_proxy: "{{ helper_vm.proxy_env }}"
-      when: registry.enabled
 
     - name: Download Openshift 4 ISO file as rhcos-installer.iso
       get_url:

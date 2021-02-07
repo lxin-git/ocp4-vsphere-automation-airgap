@@ -46,3 +46,12 @@
       repo: https://github.com/ashcrow/filetranspiler
       dest: /usr/local/src/filetranspiler
     when: install_filetranspiler
+
+  - name: Create apache directories for installing
+    file:
+      path: "{{ item }}"
+      state: directory
+      mode: 0755
+    with_items:
+      - /var/www/html/install
+      - /var/www/html/ignition

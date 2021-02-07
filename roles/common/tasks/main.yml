@@ -1,6 +1,9 @@
   - name: Process all online tasks if it is a non-restricted network
-    import_tasks: online_tasks.yml
-    when: not restricted_network
+    when: restricted_network|default(False) == False
+    include: online_tasks.yml
+
+  - name: Prepare the binaries required for installation
+    include: prepare_binaries.yml
 
   - name: Run all the pre-install steps
     include: pre_install.yml

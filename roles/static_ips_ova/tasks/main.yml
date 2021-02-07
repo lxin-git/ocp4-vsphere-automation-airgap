@@ -1,12 +1,7 @@
+
   - name: Download the ova file
-    get_url:
-      url: "{{ download.ova }}"
-      dest: "{{ helper_vm.workdir }}/downloads/{{ vcenter.template_name }}.ova"
-      validate_certs: no
-    environment:
-      http_proxy: "{{ helper_vm.proxy_env }}"
-      https_proxy: "{{ helper_vm.proxy_env }}"
-    when: skip_ova is not defined
+    when: restricted_network|default(False) == False and skip_ova is not defined
+    include: download_ova_file.yml
 
   - name: Deploy the OVF template into the folder
     vmware_deploy_ovf:

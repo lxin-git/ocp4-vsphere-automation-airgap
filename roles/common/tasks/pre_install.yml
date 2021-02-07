@@ -1,13 +1,3 @@
-    - name: Create ~/.ssh directory if it does not exist
-      file:
-        path: ~/.ssh
-        state: directory
-        mode: '0755'
-
-    - name: Generate a SSH key-pair
-      openssh_keypair:
-        path: ~/.ssh/ocp4
-        force: false
 
     - name: Set the datacenter variable
       set_fact:
@@ -23,48 +13,16 @@
         var: vcenter.folder_absolute_path
         verbosity: 1
 
-    - name: Unarchive oc client
-      unarchive:
-        remote_src: yes
-        src: "{{ helper_vm.workdir }}/downloads/oc_client.tar.gz"
-        dest: "{{ helper_vm.workdir }}/bin"
-      when: oc_client_download is changed
-
-    - name: Unarchive openshift-install
-      unarchive:
-        remote_src: yes
-        src: "{{ helper_vm.workdir }}/downloads/openshift_install.tar.gz"
-        dest: "{{ helper_vm.workdir }}/bin"
-      when: openshift_install_download is changed
-
-    - name: Put oc client to /usr/local/bin
-      copy:
-        remote_src: yes
-        src: "{{ helper_vm.workdir }}/bin/oc"
-        dest: /usr/local/bin
-        mode: 0755
-
-    - name: Put kubectl client to /usr/local/bin
-      copy:
-        remote_src: yes
-        src: "{{ helper_vm.workdir }}/bin/kubectl"
-        dest: /usr/local/bin
-        mode: 0755
-
-    - name: Put openshift-install cli to /usr/local/bin
-      copy:
-        remote_src: yes
-        src: "{{ helper_vm.workdir }}/bin/openshift-install"
-        dest: /usr/local/bin
-        mode: 0755
-
-    - name: Unarchive govc
-      shell: gzip -dc "{{ helper_vm.workdir }}/downloads/govc.gz" > "{{ helper_vm.workdir }}/bin/govc"
-
-    - name: Make govc executable
+    - name: Create ~/.ssh directory if it does not exist
       file:
-        path: "{{ helper_vm.workdir }}/bin/govc"
-        mode: '775'
+        path: ~/.ssh
+        state: directory
+        mode: '0755'
+
+    - name: Generate a SSH key-pair
+      openssh_keypair:
+        path: ~/.ssh/ocp4
+        force: false
 
     - name: Fetch the installer_ssh_key
       fetch:

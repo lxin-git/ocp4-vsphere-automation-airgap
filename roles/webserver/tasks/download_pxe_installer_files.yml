@@ -4,10 +4,17 @@
       dest: /var/lib/tftpboot/rhcos/initramfs.img
       force: yes
       mode: 0555
-
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+    when: restricted_network|default(False) == False
   - name: Downloading OpenShift installer kernel
     get_url:
       url: "{{ download.kernel }}"
       dest: /var/lib/tftpboot/rhcos/kernel
       force: yes
       mode: 0555
+    environment:
+      http_proxy: "{{ helper_vm.proxy_env }}"
+      https_proxy: "{{ helper_vm.proxy_env }}"
+    when: restricted_network|default(False) == False      

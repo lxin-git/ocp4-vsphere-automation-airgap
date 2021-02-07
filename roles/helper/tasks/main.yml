@@ -2,10 +2,10 @@
 # Setup OCP4 Helper Node
   - name: set setup facts
     include: set_facts_.yml
-    
+
   - name: Process all online tasks if it is a non-restricted network
     import_tasks: online_tasks.yml
-    when: not restricted_network
+    when: restricted_network|default(False) == False
 
   - name: generate ssh keys
     import_tasks: generate_ssh_keys.yml
@@ -68,14 +68,7 @@
     notify:
       - restart httpd
 
-  - name: Create apache directories for installing
-    file:
-      path: "{{ item }}"
-      state: directory
-      mode: 0755
-    with_items:
-      - /var/www/html/install
-      - /var/www/html/ignition
+
 
   #- name: Delete OCP4 files, if requested, to download again
   #  file:

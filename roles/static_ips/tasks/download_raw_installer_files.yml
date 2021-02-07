@@ -6,4 +6,3 @@
     environment:
       http_proxy: "{{ helper_vm.proxy_env }}"
       https_proxy: "{{ helper_vm.proxy_env }}"
-    when: restricted_network|default(False) == False

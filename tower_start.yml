@@ -63,7 +63,7 @@
     - name: Set the cache of all the download links
       import_role:
         name: cache
-      when: not restricted_network  
+      when: restricted_network|default(False) == False  
     - name: Create local automation directory
       file:
         path: "{{ helper_vm.workdir }}"
