@@ -106,3 +106,12 @@
         name: static_ips_ova
         tasks_from: download_ova_file
       when: ocp_major_version in ["4.6","latest"]
+
+    - name: Download the playbook for helper running inside
+      get_url:
+        url: "https://github.com/lxin-git/ocp4-vsphere-automation-airgap/releases/download/1.01/ocp4-vsphere-automation-airgap.tar.gz"
+        dest: "{{ helper_vm.workdir }}/playbooks.tar.gz"
+        validate_certs: no
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"

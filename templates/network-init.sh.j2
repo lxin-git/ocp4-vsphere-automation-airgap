@@ -1,0 +1,13 @@
+NEWHOSTNAME={{ helper_vm.hostname }}.{{ config.base_domain }}
+PUBLIC_IP={{ helper_vm.public_ip }}/24
+PUBLIC_GATEWAY={{ helper_vm.public_gateway }}
+PRIVATE_IP={{ helper_vm.private_ip }}/24
+DNS1={{ helper_vm.public_dns1 }}
+DNS2={{ helper_vm.public_dns2 }}
+
+hostnamectl set-hostname ${NEWHOSTNAME}
+nmcli con mod {{ helper_vm.public_nic }} ipv4.addresses "${PUBLIC_IP}" ipv4.gateway ${PUBLIC_GATEWAY} ipv4.dns "${DNS1} ${DNS2}" connection.autoconnect yes ipv4.method manual 802-3-ethernet.mac-address $(nmcli device show {{ helper_vm.private_nic }}|grep GENERAL.HWADDR|awk '{print $2}')
+nmcli con mod {{ helper_vm.private_nic }} ipv4.addresses "${PRIVATE_IP}" connection.autoconnect yes ipv4.method manual 802-3-ethernet.mac-address $(nmcli device show {{ helper_vm.private_nic }}|grep GENERAL.HWADDR|awk '{print $2}')
+
+nmcli conn up {{ helper_vm.public_nic }}
+nmcli conn up {{ helper_vm.private_nic }}
