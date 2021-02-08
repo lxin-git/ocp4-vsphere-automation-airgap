@@ -501,10 +501,13 @@
         - "Please run /usr/local/bin/helpernodecheck for information"
 
   - name: Post install to avoid dns recovered by nmcli 1
-    command: "nmcli con mod {{ helper_vm.public_nic }} -ipv4.dns {{ item }}"
-    with_items:
-      - "{{ helper_vm.public_dns1 }}"
-      - "{{ helper_vm.public_dns2 }}"
+    command: "nmcli con mod {{ helper_vm.public_nic }} ipv4.dns ''"
+
+  #- name: Post install to avoid dns recovered by nmcli 1
+  #  command: "nmcli con mod {{ helper_vm.public_nic }} -ipv4.dns {{ item }}"
+  #  with_items:
+  #    - "{{ helper_vm.public_dns1 }}"
+  #    - "{{ helper_vm.public_dns2 }}"
 
   - name: Post install to avoid dns recovered by nmcli 2
     command: "nmcli con up {{ helper_vm.public_nic }}"

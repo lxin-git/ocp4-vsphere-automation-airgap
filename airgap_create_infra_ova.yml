@@ -72,7 +72,9 @@
       import_role:
         name: cache
       when: restricted_network|default(False) == False
-
+    - name:  Set the ocp_major_version facts, which will be used to identify ova/iso approach
+      set_fact:
+        ocp_major_version: "{{ download.clients_url | regex_search('openshift-v4/clients/ocp/(.+)', '\\1') | first |regex_replace('\\.[^.]+$') }}"
     - name: Create local automation directory
       file:
         path: "{{ helper_vm.workdir }}"
@@ -90,7 +92,7 @@
       - utilize_registry
       loop_control:
         loop_var: common_online_tasks
-        
+
     # If version <= V4.5, we will use ISO to launch VMs
     - name: Download the installer raw.gz file to webserver
       import_role:

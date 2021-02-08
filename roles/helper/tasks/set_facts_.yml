@@ -39,6 +39,7 @@
         - libselinux-python
         - podman
         - nfs-utils
+        - skopeo
 
   - set_fact:
       dhcppkgs:

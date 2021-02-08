@@ -61,9 +61,12 @@
       import_role:
         name: helper
     - name: Set the cache of all the download links
-      import_role:
+      include_role:
         name: cache
-      when: restricted_network|default(False) == False  
+      when: restricted_network|default(False) == False
+    - name:  Set the ocp_major_version facts, which will be used to identify ova/iso approach
+      set_fact:
+        ocp_major_version: "{{ download.clients_url | regex_search('openshift-v4/clients/ocp/(.+)', '\\1') | first |regex_replace('\\.[^.]+$') }}"
     - name: Create local automation directory
       file:
         path: "{{ helper_vm.workdir }}"

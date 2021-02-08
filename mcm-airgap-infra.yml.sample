@@ -33,15 +33,15 @@ ocpconfig:
     base_domain: cn.ibm.com
     cluster_name: mcm
     fips: false
-    pull_secret: {"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2xsaXhpbm4xYmFoeXkzYzlneGVjNHp2bHhvZG01OTVya286NkhNOEswR0oxTDdMNzhYTTBNOVUwU1NFTkxGSERZMjMzT0VUOVVEV1NQVjZPTkdYNE83QVI0Tzc4R1dYMjlBRw==","email":"llixinn@cn.ibm.com"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2xsaXhpbm4xYmFoeXkzYzlneGVjNHp2bHhvZG01OTVya286NkhNOEswR0oxTDdMNzhYTTBNOVUwU1NFTkxGSERZMjMzT0VUOVVEV1NQVjZPTkdYNE83QVI0Tzc4R1dYMjlBRw==","email":"llixinn@cn.ibm.com"},"registry.connect.redhat.com":{"auth":"NTMwNDkwMTF8dWhjLTFiQWh5eTNjOUdYRWM0WnZMeE9kTTU5NVJrbzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTJZVGcxTmpJM1kyRm1NV0kwTTJReFlUWm1OR0V4TkdOak5EUTVaRGszWXlKOS5zU0kzMncwS0xJYlh5akZNWW5DZjk4NVk2SU9hN0tDRmgtTENzcnVOemNIcGJGLTVYT2Ewem1NVDVxbW53RlNONC1DTFJPeC1Ba1BtM2JkZ2dBQWFoM3ZLQ0xGLVNMM1hESF94VGxxOXM0RUQwdnk4R3lMMWxRbElUOV8zMmtYUjIwVUg4djhDVWJXRXZteGVmUXFlaGcwVmp2TnhzeE8xdjJZVEpPcWo5ZmgwV1FuTTVmZjBwOW41Y0VTQVA5eFFCc25BSzRLUnU4RERJMU5kUHVJQVRNaGZsS3ItTkI2Q3VPSERPRUZCQzdXcjRoVmxFblBWZVVYS05rNVk1M09WMjhpdndFcmVseDd3ODBKMm1EaFduY3lMM2Fuc0pXRG9oUDlKV2NTcTZUNDdPbFk4M0pZazBYVTVLVXE3MDV2cmp5eXFHUE9veVJqU3VPQWw0ekpGUTNOdTQzdE8teU5YcS00aVZINXExQnp6akYwMzdfSkdyQ3VvT2g1NkY0ampSWDRLX1hYaGhnYk5na1ptR25SWXpyTW42b0lrRGFySncwQ2w1cjBlbXczSThrSmMxME5SNjktdnhWSlpsS25kMUE5UjBzN1dUblZQbEJQUnlSMUxkNkQtdW9IY2htRjRlV0d1RzNJYXBTMHE2TzRZTDJqMkFQY05Ndndlb1ZDU01YMWd6cGo4VXNvSmlHRkl6MHJUcW1pRC1mdG45aEY1Vi15Y1JwWk9xY0M3RmVkWW9ubGVvUnV4bUlUNGJuUkk0Y0VETGpiN1VNRHVTNHRSZDNqYkx0bU4wcnByY2xza3VnNjNuRF9FbDBuQ3k0aERVQkYzU0FwT2FaYXBmMmh1ZnFoNmp1dXEyX0Y0VHdJTmxsWWFFbVlaYTV2V1pMLUdMYmlHMF9IZjB6VQ==","email":"llixinn@cn.ibm.com"},"registry.redhat.io":{"auth":"NTMwNDkwMTF8dWhjLTFiQWh5eTNjOUdYRWM0WnZMeE9kTTU5NVJrbzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTJZVGcxTmpJM1kyRm1NV0kwTTJReFlUWm1OR0V4TkdOak5EUTVaRGszWXlKOS5zU0kzMncwS0xJYlh5akZNWW5DZjk4NVk2SU9hN0tDRmgtTENzcnVOemNIcGJGLTVYT2Ewem1NVDVxbW53RlNONC1DTFJPeC1Ba1BtM2JkZ2dBQWFoM3ZLQ0xGLVNMM1hESF94VGxxOXM0RUQwdnk4R3lMMWxRbElUOV8zMmtYUjIwVUg4djhDVWJXRXZteGVmUXFlaGcwVmp2TnhzeE8xdjJZVEpPcWo5ZmgwV1FuTTVmZjBwOW41Y0VTQVA5eFFCc25BSzRLUnU4RERJMU5kUHVJQVRNaGZsS3ItTkI2Q3VPSERPRUZCQzdXcjRoVmxFblBWZVVYS05rNVk1M09WMjhpdndFcmVseDd3ODBKMm1EaFduY3lMM2Fuc0pXRG9oUDlKV2NTcTZUNDdPbFk4M0pZazBYVTVLVXE3MDV2cmp5eXFHUE9veVJqU3VPQWw0ekpGUTNOdTQzdE8teU5YcS00aVZINXExQnp6akYwMzdfSkdyQ3VvT2g1NkY0ampSWDRLX1hYaGhnYk5na1ptR25SWXpyTW42b0lrRGFySncwQ2w1cjBlbXczSThrSmMxME5SNjktdnhWSlpsS25kMUE5UjBzN1dUblZQbEJQUnlSMUxkNkQtdW9IY2htRjRlV0d1RzNJYXBTMHE2TzRZTDJqMkFQY05Ndndlb1ZDU01YMWd6cGo4VXNvSmlHRkl6MHJUcW1pRC1mdG45aEY1Vi15Y1JwWk9xY0M3RmVkWW9ubGVvUnV4bUlUNGJuUkk0Y0VETGpiN1VNRHVTNHRSZDNqYkx0bU4wcnByY2xza3VnNjNuRF9FbDBuQ3k0aERVQkYzU0FwT2FaYXBmMmh1ZnFoNmp1dXEyX0Y0VHdJTmxsWWFFbVlaYTV2V1pMLUdMYmlHMF9IZjB6VQ==","email":"llixinn@cn.ibm.com"}}}
+    pull_secret: {"auths":{xxxxxx}}
   vcenter:
     ip: 9.112.238.90
     datastore: ds_demo01
     network: DPortGroup
-    service_account_username: Administrator@mmlab.cn.ibm.com
-    service_account_password: 'Dem0@18m'
-    admin_username: Administrator@mmlab.cn.ibm.com
-    admin_password: 'Dem0@18m'
+    service_account_username: Administrator@vcenter.cn.ibm.com
+    service_account_password: 'YourPass'
+    admin_username: Administrator@vcenter.cn.ibm.com
+    admin_password: 'YourPass'
     datacenter: Datacenter
     cluster: cluster0
     resource_pool: demopool
@@ -70,15 +70,9 @@ ocpconfig:
   #  - { name: "worker2", macaddr: "00:50:56:a8:aa:a7", ipaddr: "10.0.2.122"}
 
 
-  # Custermize your cluster nodes hardware configuration:
-#  hwconfig:
-#    bootstrap: {num_cpus: 8, memory_mb: 8192, size_gb: 50}
-#    master: {num_cpus: 8, memory_mb: 24576, size_gb: 50}
-#    worker: {num_cpus: 16, memory_mb: 32768, size_gb: 100}
-
   # Custermize your cluster nodes network configuration:
   static_ip:
-    gateway: 10.0.2.254
+    gateway: 192.168.60.20
     netmask: 255.255.255.0
     network_interface_name: ens192
 
@@ -104,7 +98,7 @@ ocpconfig:
     host: "registry.{{'{{'}} config.cluster_name {{'}}'}}.{{'{{'}} config.base_domain {{'}}'}}"
     port: 5000
     repo: ocp4/openshift4
-    offline_image_path: /root/mirror-data/ocp4.5.20
+    offline_image_path: /root/ocp4-vsphere-automation
 
   ntp:
     custom: false

@@ -39,7 +39,7 @@
         oc adm -a "{{ helper_vm.workdir }}/install-dir/pull-secret.json" release mirror \
         --from="quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ registry.product_release_version }}" \
         --to="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}" \
-        --to-release-image="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
+        --to-release-image="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_version }}"
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
@@ -49,8 +49,12 @@
     - name: Mirror the registry from local image path
       command: |
         oc image mirror -a "{{ helper_vm.workdir }}/install-dir/pull-secret.json" \
-        --from-dir="{{ registry.offline_image_path }}"/mirror "file://openshift/release:{{ registry.product_release_name.split("-")[0] }}*" "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}"
+        --from-dir="{{ registry.offline_image_path }}"/mirror "file://openshift/release:{{ registry.product_release_version.split("-")[0] }}*" "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}"
       when: restricted_network|default(False) == True and registry.offline_image_path is defined
+
+    - name: Upload the nfs-client-provisioner image to mirror registry
+      command: "skopeo copy --authfile {{ helper_vm.workdir }}/install-dir/pull-secret.json --format v2s2 --all docker-archive:{{ helper_vm.workdir }}/downloads/nfs-client-provisioner.tar docker://{{ registry.host }}:{{ registry.port }}/nfs-client-provisioner:latest"
+      when: restricted_network|default(False) == True
 
     - name: Extract openshift-install from registry
       command: |
@@ -58,7 +62,7 @@
         release extract \
         --command=openshift-install \
         --to={{ helper_vm.workdir }}/bin \
-        "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
+        "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_version.split("-")[0] }}"
       when: skip_sync_mirror|default(False) == False
 
     - name: Point the pull secret to the local registry

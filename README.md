@@ -25,17 +25,19 @@ ansible-playbook tower_start.yml -e @myocpconfig.yml
 
 Updated for create offline ova:
 ```
-ansible-playbook airgap_offline_ova.yml -e @mcm-airgap-infra.yml -e skip_sync_mirror=true
-ansible-playbook airgap_create_infra_ova.yml -e @mcm-airgap-infra.yml -e skip_sync_mirror=true
+ansible-playbook airgap_create_infra_ova.yml -e @mcm-airgap-infra.yml -e '{skip_sync_mirror: true}'
 ```
 
 If you have vcenter access, to install from infra node in a restricted network:
 ```
-ansible-playbook tower_start.yml -e @mcm-airgap-infra.yml -e restricted_network=true
+scp image_mirror_ocp_release_4.5.20.tar.gz root@9.112.238.116://root/ocp4-vsphere-automation/
+cd /root/ocp4-vsphere-automation/ && tar xvf image_mirror_ocp_release_4.5.20.tar.gz
+# change registry.offline_image_path to /root/ocp4-vsphere-automation/
+ansible-playbook tower_start.yml -e @mcm-airgap-infra.yml -e '{restricted_network: true}'
 ```
 If you do not have vcenter access, to create all the iso from infra node in a restricted network:
 ```
-ansible-playbook airgap_create_iso.yml -e @mcm-airgap-infra.yml -e restricted_network=true
+ansible-playbook airgap_create_iso.yml -e @mcm-airgap-infra.yml -e '{restricted_network: true}'
 ```
 
 

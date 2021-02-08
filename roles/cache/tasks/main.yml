@@ -38,6 +38,6 @@
   #- debug:
   #    msg: "{{ download }}"
 
-  - name:  Set the ocp_major_version facts, which will be used to identify ova/iso approach
-    set_fact:
-      ocp_major_version: "{{ download.clients_url | regex_search('openshift-v4/clients/ocp/(.+)', '\\1') | first |regex_replace('\\.[^.]+$') }}"
+  #- name:  Set the ocp_major_version facts, which will be used to identify ova/iso approach
+  #  set_fact:
+  #    ocp_major_version: "{{ download.clients_url | regex_search('openshift-v4/clients/ocp/(.+)', '\\1') | first |regex_replace('\\.[^.]+$') }}"
