@@ -107,6 +107,12 @@
         tasks_from: download_ova_file
       when: ocp_major_version in ["4.6","latest"]
 
+    - name: Create network init file
+      template:
+        src: ./templates/network-init.sh.j2
+        dest: /root/network-init.sh
+        mode: '0755'
+        
     - name: Download the playbook for helper running inside
       get_url:
         url: "https://github.com/lxin-git/ocp4-vsphere-automation-airgap/releases/download/1.01/ocp4-vsphere-automation-airgap.tar.gz"

@@ -130,6 +130,7 @@
 
     - name: Copy the nfs provisioner docker image to local disk
       command: "skopeo copy docker://quay.io/external_storage/nfs-client-provisioner:latest docker-archive:{{ helper_vm.workdir }}/downloads/nfs-client-provisioner.tar"
+      ignore_errors: True
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
