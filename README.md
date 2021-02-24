@@ -30,10 +30,10 @@ ansible-playbook airgap_create_infra_ova.yml -e @mcm-airgap-infra.yml -e '{skip_
 
 If you have vcenter access, to install from infra node in a restricted network:
 ```
-scp image_mirror_ocp_release_4.5.20.tar.gz root@9.112.238.116://root/ocp4-vsphere-automation/
-cd /root/ocp4-vsphere-automation/ && tar xvf image_mirror_ocp_release_4.5.20.tar.gz
+scp image_mirror_ocp_release_4.5.20.tar root@9.112.238.116://root/ocp4-vsphere-automation/
+cd /root/ocp4-vsphere-automation/ && tar xvf image_mirror_ocp_release_4.5.20.tar
 # change registry.offline_image_path to /root/ocp4-vsphere-automation/
-ansible-playbook tower_start.yml -e @mcm-airgap-infra.yml -e '{restricted_network: true}'
+ansible-playbook infra_start.yml -e @mcm-airgap-infra.yml -e '{restricted_network: true}'
 ```
 If you do not have vcenter access, to create all the iso from infra node in a restricted network:
 ```

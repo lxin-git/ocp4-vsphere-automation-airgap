@@ -1,3 +1,16 @@
+    - name: Must always clean install-dir before generate ignition
+      file:
+        path: "{{ helper_vm.workdir }}/{{ item }}"
+        state: absent
+      with_items: ["install-dir"]
+
+    - name: Re-create install-dir folders
+      file:
+        path: "{{ helper_vm.workdir }}/{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items: ["install-dir"]
+
     - name: Generate the ignition manifests
       command: "openshift-install create manifests --dir={{ helper_vm.workdir }}/install-dir"
 

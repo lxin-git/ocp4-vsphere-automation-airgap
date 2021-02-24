@@ -63,7 +63,7 @@
         --command=openshift-install \
         --to={{ helper_vm.workdir }}/bin \
         "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_version.split("-")[0] }}"
-      when: skip_sync_mirror|default(False) == False
+      when: skip_sync_mirror|default(False) == False and restricted_network|default(False) == False
 
     - name: Point the pull secret to the local registry
       set_fact:
