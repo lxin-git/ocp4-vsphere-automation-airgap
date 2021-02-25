@@ -34,6 +34,19 @@
       set_fact:
         installer_ssh_key: "{{ lookup('file', '{{ playbook_dir }}/{{ inventory_hostname }}_ocp4.pub') }}"
 
+    - name: Must always clean install-dir before generate install-config
+      file:
+        path: "{{ helper_vm.workdir }}/{{ item }}"
+        state: absent
+      with_items: ["install-dir"]
+
+    - name: Re-create install-dir folders
+      file:
+        path: "{{ helper_vm.workdir }}/{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items: ["install-dir"]
+
     - name: Copy install-config.yaml file into install-dir
       template:
         src: "roles/common/templates/install-config.yaml.j2"
