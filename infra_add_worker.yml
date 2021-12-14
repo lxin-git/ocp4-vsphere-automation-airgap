@@ -15,30 +15,8 @@
         dest: "{{ playbook_dir }}/vars-static.yml"
         mode: 0644
         force: yes
-    - name: Create VM for bastion host
-      import_role:
-        name: bastion
-        tasks_from: create_vm_bastion
 
-    - name: Add host to group [bastion]
-      add_host:
-        name: "{{ helper_vm.public_ip }}"
-        groups: bastion
-        ansible_ssh_user: "root"
-        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
-        host_key_checking: False
-        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-
-    - name: Add host to group [webservers]
-      add_host:
-        name: "{{ helper_vm.public_ip }}"
-        groups: webservers
-        ansible_ssh_user: "root"
-        ansible_ssh_pass: "{{ helper_vm.rootpassword }}"
-        host_key_checking: False
-        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-
-- hosts: bastion
+- hosts: localhost
   gather_facts: True
   vars_files:
     - roles/helper/vars/main.yml
@@ -64,25 +42,16 @@
       include_role:
         name: cache
       when: restricted_network|default(False) == False
+
     - name:  Set the ocp_major_version facts, which will be used to identify ova/iso approach
       set_fact:
         ocp_major_version: "{{ download.clients_url | regex_search('openshift-v4/clients/ocp/(.+)', '\\1') | first |regex_replace('\\.[^.]+$') }}"
-    - name: Create local automation directory
-      file:
-        path: "{{ helper_vm.workdir }}"
-        state: directory
-        mode: '0755'
-    - name: Run all the common tasks
-      import_role:
-        name: common
-    - name: Run the vmware role to setup vCenter folder
-      import_role:
-        name: vmware
 
     # If version <= V4.5, we will use ISO to launch VMs
     - name: Run steps specific to static ip and the use of ISO files
       import_role:
         name: static_ips
+        tasks_from: new_worker
       when: ocp_major_version in ["4.3","4.4","4.5"]
 
     # If version is V4.6+, we have to use OVA to launch VMs
@@ -90,7 +59,3 @@
       import_role:
         name: static_ips_ova
       when: ocp_major_version not in ["4.3","4.4","4.5"]
-
-    - name: Performing the postinstall check action
-      import_role:
-        name: postinstall

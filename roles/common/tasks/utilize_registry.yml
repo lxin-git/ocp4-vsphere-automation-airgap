@@ -44,16 +44,33 @@
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
         no_proxy: "{{ config.cluster_name }}.{{ config.base_domain }}"
+        GODEBUG: "x509ignoreCN=0" # need fix x509 error in certain version of oc/podman
       when: restricted_network|default(False) == False and skip_sync_mirror|default(False) == False
+
+    - name: Mirror the release image to local image path
+    # this task is used for airgap_create_ova playbook, we store the mirror data during ova preparation
+      command: |
+        oc adm -a "{{ helper_vm.workdir }}/install-dir/pull-secret.json" release mirror \
+        --to-dir="{{ registry.offline_image_path }}/mirror" \
+        "quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ registry.product_release_version }}"
+      environment:
+        GODEBUG: "x509ignoreCN=0" # need fix x509 error in certain version of oc/podman
+      when: restricted_network|default(False) == False and
+            skip_mirror_to_file|default(False) == False and
+            registry.offline_image_path is defined
 
     - name: Mirror the registry from local image path
       command: |
         oc image mirror -a "{{ helper_vm.workdir }}/install-dir/pull-secret.json" \
         --from-dir="{{ registry.offline_image_path }}"/mirror "file://openshift/release:{{ registry.product_release_version.split("-")[0] }}*" "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}"
+      environment:
+        GODEBUG: "x509ignoreCN=0" # need fix x509 error in certain version of oc/podman
       when: restricted_network|default(False) == True and registry.offline_image_path is defined
 
     - name: Upload the nfs-client-provisioner image to mirror registry
       command: "skopeo copy --authfile {{ helper_vm.workdir }}/install-dir/pull-secret.json --format v2s2 --all docker-archive:{{ helper_vm.workdir }}/downloads/nfs-client-provisioner.tar docker://{{ registry.host }}:{{ registry.port }}/nfs-client-provisioner:latest"
+      environment:
+        GODEBUG: "x509ignoreCN=0" # need fix x509 error in certain version of oc/podman
       when: restricted_network|default(False) == True
 
     - name: Extract openshift-install from registry
@@ -63,6 +80,8 @@
         --command=openshift-install \
         --to={{ helper_vm.workdir }}/bin \
         "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_version.split("-")[0] }}"
+      environment:
+        GODEBUG: "x509ignoreCN=0" # need fix x509 error in certain version of oc/podman
       when: skip_sync_mirror|default(False) == False and restricted_network|default(False) == False
 
     - name: Point the pull secret to the local registry

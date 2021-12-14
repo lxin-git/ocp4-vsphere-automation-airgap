@@ -38,6 +38,7 @@
       export KUBECONFIG={{ helper_vm.workdir }}/install-dir/auth/kubeconfig
       firewall-cmd --permanent --add-rich-rule="rule family="ipv4" source address="{{ helper_vm.private_ip.split(".")[0] }}.{{ helper_vm.private_ip.split(".")[1] }}.0.0/16" accept"
       firewall-cmd --reload
+      systemctl restart mirror-registry
       helpernodecheck nfs-setup
       oc create -f /usr/local/src/registry-pvc.yaml -n openshift-image-registry
       oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"pvc":{ "claim": "registry-pvc"}}}}'

@@ -1,6 +1,5 @@
 # ocp4-vsphere-automation
 
-Not transfer to tower yet. but it will be easy...
 From your ansible control manager host, make sure pyvmomi module installed for your ansible python env.
 Enable epel repo, then:
 ```
@@ -25,8 +24,13 @@ ansible-playbook tower_start.yml -e @myocpconfig.yml
 
 Updated for create offline ova:
 ```
-ansible-playbook airgap_create_infra_ova.yml -e @mcm-airgap-infra.yml -e '{skip_sync_mirror: true}'
+ansible-playbook airgap_create_infra_ova.yml -e '{skip_sync_mirror: true}' -e @mcm-airgap-infra.yml
 ```
+Updated for create offline ova and manual prepare the mirro data and ova (since they are too large):
+```
+ansible-playbook airgap_create_infra_ova.yml -e '{skip_sync_mirror: true}' -e '{skip_download_ova: true}' -e '{skip_mirror_to_file: true}' -e @mcm-airgap-infra.yml
+```
+
 
 If you have vcenter access, to install from infra node in a restricted network:
 ```

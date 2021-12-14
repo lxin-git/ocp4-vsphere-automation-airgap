@@ -511,3 +511,5 @@
 
   - name: Post install to avoid dns recovered by nmcli 2
     command: "nmcli con up {{ helper_vm.public_nic }}"
+
+  - meta: flush_handlers

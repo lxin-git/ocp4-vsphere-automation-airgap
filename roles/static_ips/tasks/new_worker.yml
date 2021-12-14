@@ -1,0 +1,167 @@
+
+# -------------------------------------------------------------
+#  Only apply to v4.5+, a new hash value required for vm folder
+#  Otherwise, the vsphere volume storage class not work.
+# -------------------------------------------------------------
+  - name: Get current openshift-install infrastructureName hash value
+    command: jq -r .infraID "{{ helper_vm.workdir }}/install-dir/metadata.json"
+    register: ocp_infrastructureName_hash
+    when: ocp_major_version not in ["4.3","4.4"]
+
+  - name: Update the vcenter.folder_absolute_path for new hash
+    set_fact:
+      vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+vcenter.datacenter+'/vm/'+ocp_infrastructureName_hash.stdout}, recursive=True) }}"
+    when: vcenter.folder_absolute_path is defined and ocp_major_version not in ["4.3","4.4"]
+# -------------------------------------------------------------
+
+  - name: Reset the vcenter.vm_power_state to poweredoff
+    set_fact:
+      vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
+
+  - name: Create worker VMs from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      cluster: "{{ vcenter.cluster}}"
+      resource_pool: "{{ vcenter.resource_pool }}"
+      guest_id: "rhel7_64Guest"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      disk:
+      - size_gb: "{{ item.disksize }}"
+        type: None
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.macaddr }}"
+      wait_for_ip_address: no
+    loop: "{{ new_worker_vms }}"
+
+  - name: Update VM options on the template
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ item.name }} -e=disk.EnableUUID=TRUE"
+    loop: "{{ new_worker_vms }}"
+
+  - name: Get the sha265sum of the rhcos-installer.iso file
+    stat:
+      get_checksum: yes
+      checksum_algorithm: sha256
+      path: "{{ iso_dir }}/rhcos-installer.iso"
+    register: st
+
+  - name: Clean iso mount path directory
+    file:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: absent
+
+  - name: Create the iso mount path (if one doesn't exist already)
+    file:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: directory
+      mode: '0775'
+      recurse: yes
+
+  - name: Clean duplicate iso mount path directory
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      state: absent
+
+  - name: Create duplicate dir of the iso mount path (if one doesn't exist already)
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      state: directory
+      mode: '0775'
+      recurse: yes
+
+  - name: Unmount the iso mount path before mount
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: absent
+    become: true
+
+  - name: Mount the rhcos-installer.iso onto the mount path {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      src: "{{ iso_dir }}/rhcos-installer.iso"
+      fstype: iso9660
+      opts: ro
+      state: mounted
+    become: true
+
+  - name: Synchronization between the mount path and dup
+    # Here I change synchronize to copy to make it simple, since ansible 2.8- will cause broke pipe 32 error.
+    # And synchronize have to use [delegate_to: "{{ inventory_hostname }}"] in our case
+    #synchronize:
+    copy:
+      remote_src: yes
+      src: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}/"
+      dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+
+  - name: Recursively apply permission of 775 to {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      mode: '0775'
+      recurse: yes
+
+  - name: Create the iso_updated_dir to store the updated iso patch files
+    file:
+      path: "{{ iso_updated_dir }}/files"
+      state: directory
+      mode: '0755'
+      recurse: yes
+
+  - name: Make a copy of the isolinux.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      remote_src: yes
+      src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
+      dest: "{{ iso_updated_dir }}/files/"
+
+  - name: Make a copy of the grub.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      remote_src: yes
+      src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
+      dest: "{{ iso_updated_dir }}/files/"
+
+  - name: Unmount the iso mount path
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: absent
+    become: true
+
+  - name: Generate kernel params for all new workers
+    vars:
+      machine_name: "{{ item.name }}"
+      machine_type: worker
+      machine_ip: "{{ item.ipaddr }}"
+      #helper_vm_ip: "{{ helper_vm.private_ip }}"
+    template:
+      src: kernel-params.j2
+      dest: "{{ iso_updated_dir }}/files/{{item.name}}-kernel-params.txt"
+    loop: "{{ new_worker_vms }}"
+
+  - name: Generate custom iso files for all VMs
+    include: generate_custom_iso.yml
+    loop: "{{ new_worker_vms }}"
+
+  - name: Upload all the custom generated ISOs to the datastore
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/{{item.name}}.iso {{item.name}}.iso"
+    loop: "{{ new_worker_vms }}"
+
+  - name: Add a cdrom device to all the OpenShift VMs
+    command: "govc device.cdrom.add -vm {{ item.name }}"
+    loop: "{{ new_worker_vms }}"
+
+  - name: Insert the uploaded ISO file {{item.name}}.iso as cdrom to VM {{ item.name }}
+    command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{item.name}}.iso"
+    loop: "{{ new_worker_vms }}"
+
+  - name: Power-On all the VMs
+    command: "govc vm.power -on {{ item.name }}"
+    loop: "{{ new_worker_vms }}"

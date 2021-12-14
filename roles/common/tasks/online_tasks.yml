@@ -62,13 +62,53 @@
         https_proxy: "{{ helper_vm.proxy_env }}"
       become: true
 
-    - name: Pull the registry docker image
-      podman_image:
-        name: "{{ registry.registry_image }}"
+    - name: Install required ansible version
+      pip:
+        name: ansible==2.9.19  # need specific the ansible version to avoid vmware_guest module bug
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
-      when: registry.enabled
+      become: true
+
+#    - name: Pull the registry docker image withouth login
+#      podman_image:
+#        name: "{{ registry.registry_image }}"
+#      environment:
+#        http_proxy: "{{ helper_vm.proxy_env }}"
+#        https_proxy: "{{ helper_vm.proxy_env }}"
+#      when: registry.enabled and
+#            (registry.dockerio_user is not defined or registry.dockerio_user == None)
+#
+#    - name: Pull the registry docker image
+#      podman_image:
+#        name: "{{ registry.registry_image }}"
+#        username: "{{ registry.dockerio_user }}"
+#        password: "{{ registry.dockerio_pass }}"
+#      environment:
+#        http_proxy: "{{ helper_vm.proxy_env }}"
+#        https_proxy: "{{ helper_vm.proxy_env }}"
+#      when: (registry.enabled) and
+#            (registry.dockerio_user is defined and registry.dockerio_user != None) and
+#            (registry.dockerio_pass is defined and registry.dockerio_pass != None)
+
+
+    # Due to podman_image module bug, username/password not work, change to command module:
+    - name: Pull the registry docker image withouth login
+      command: podman pull {{ registry.registry_image }}
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"
+      when: registry.enabled and
+            (registry.pull_creds is not defined or registry.pull_creds == None)
+
+    - name: Pull the registry docker image
+      command: podman pull {{ registry.registry_image }} --creds {{ registry.pull_creds }}
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"
+      when: (registry.enabled) and
+            (registry.pull_creds is defined and registry.pull_creds != None)
+
 
     - name: Clean up existing bin, install-dir and downloads folders
       file:
@@ -127,9 +167,11 @@
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
+      when: ocp_major_version in ["4.3","4.4","4.5"]
 
     - name: Copy the nfs provisioner docker image to local disk
-      command: "skopeo copy docker://quay.io/external_storage/nfs-client-provisioner:latest docker-archive:{{ helper_vm.workdir }}/downloads/nfs-client-provisioner.tar"
+      #command: "skopeo copy docker://quay.io/external_storage/nfs-client-provisioner:latest docker-archive:{{ helper_vm.workdir }}/downloads/nfs-client-provisioner.tar"
+      command: "skopeo copy docker://{{ storage.setup_nfs_image }} docker-archive:{{ helper_vm.workdir }}/downloads/nfs-client-provisioner.tar"
       ignore_errors: True
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"

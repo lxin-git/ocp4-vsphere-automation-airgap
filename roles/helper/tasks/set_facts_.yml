@@ -80,6 +80,9 @@
         - python3-libselinux
         - podman
         - nfs-utils
+        - skopeo
+        - net-tools
+        - telnet
 
   - set_fact:
       dhcppkgs:

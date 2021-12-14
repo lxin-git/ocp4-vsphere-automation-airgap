@@ -98,7 +98,12 @@ ocpconfig:
     host: "registry.{{'{{'}} config.cluster_name {{'}}'}}.{{'{{'}} config.base_domain {{'}}'}}"
     port: 5000
     repo: ocp4/openshift4
-    offline_image_path: /root/ocp4-vsphere-automation
+    offline_image_path: /root/ocp4-vsphere-automation/downloads
+    #-----------------------------------------------------------------------
+    # This is used to pull registry image since docker.io has limitation now.
+    # Or you can change the registry_image location
+    pull_creds: <Your docker.io username>:<Your docker.io password>
+    #-----------------------------------------------------------------------
 
   ntp:
     custom: false

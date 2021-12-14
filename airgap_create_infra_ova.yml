@@ -105,7 +105,7 @@
       import_role:
         name: static_ips_ova
         tasks_from: download_ova_file
-      when: ocp_major_version in ["4.6","latest"]
+      when: ocp_major_version not in ["4.3","4.4","4.5"]
 
     - name: Create network init file
       template:
@@ -115,7 +115,7 @@
 
     - name: Download the playbook for helper running inside
       get_url:
-        url: "https://github.com/lxin-git/ocp4-vsphere-automation-airgap/releases/download/4.5/ocp4-vsphere-automation-airgap.tar.gz"
+        url: "https://github.com/lxin-git/ocp4-vsphere-automation-airgap/releases/latest/download/ocp4-vsphere-automation-airgap.tar.gz"
         dest: "{{ helper_vm.workdir }}/playbooks.tar.gz"
         validate_certs: no
       environment:

@@ -43,8 +43,18 @@
       register: ocp_infrastructureName_hash
       when: ocp_major_version not in ["4.3","4.4"]
 
+    - name: Get current folder path where infra node exists
+      shell: govc find -type m -name={{ helper_vm.hostname }}|sed "s/\/{{ helper_vm.hostname }}//g"
+      register: old_vmpath_check_result
+      when: ocp_major_version not in ["4.3","4.4"]
+
+    - name: "Show old vm path "
+      debug:
+        msg: "{{ old_vmpath_check_result.stdout }}"
+
     - name: Update VM folder for new hash value
-      command: "govc object.rename {{ vcenter.folder_absolute_path }} {{ ocp_infrastructureName_hash.stdout}}"
+      #command: "govc object.rename {{ vcenter.folder_absolute_path }} {{ ocp_infrastructureName_hash.stdout}}"
+      command: "govc object.rename {{ old_vmpath_check_result.stdout }} {{ ocp_infrastructureName_hash.stdout}}"
       when: ocp_major_version not in ["4.3","4.4"]
 
     - name: Update the vcenter.folder_absolute_path for new hash

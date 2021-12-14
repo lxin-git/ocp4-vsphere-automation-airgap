@@ -22,3 +22,9 @@ workers:
   - name: "{{ w.name }}"
     ipaddr: "{{ w.ipaddr }}"
 {% endfor %}
+{% if new_worker_vms is defined and new_worker_vms %}
+{% for w in new_worker_vms %}
+  - name: "{{ w.name }}"
+    ipaddr: "{{ w.ipaddr }}"
+{% endfor %}
+{% endif%}

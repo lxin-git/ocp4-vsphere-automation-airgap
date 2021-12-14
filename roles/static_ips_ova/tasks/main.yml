@@ -3,6 +3,11 @@
     when: restricted_network|default(False) == False and skip_ova is not defined
     include: download_ova_file.yml
 
+  - name: Delete the rhcos template if exists
+    command: "govc vm.destroy {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
+    ignore_errors: True
+    when: skip_ova is not defined
+
   - name: Deploy the OVF template into the folder
     vmware_deploy_ovf:
       hostname: "{{ vcenter.ip }}"
@@ -60,6 +65,20 @@
     debug:
       msg: "{{ workerign['content'] }}"
       verbosity: 1
+#-------------------------------------------
+# Check ansible version later than 2.11
+# disk type has to be set to thick instead of None
+#-------------------------------------------
+
+  - set_fact:
+      vmdisktype: "None"
+  - set_fact:
+      vmdisktype: "thick"
+    when: ansible_version.full is version('2.11.0', '>=')
+  - name: "Show vm disk type "
+    debug:
+      msg: "{{ vmdisktype }}"
+#-------------------------------------------
 
   - name: Create bootstrap VM from the template
     vmware_guest:
@@ -73,10 +92,10 @@
       folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
-      template: "{{ vcenter.template_name }}"
+      template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
       disk:
       - size_gb: "{{ item.disksize }}"
-        type: None
+        type: "{{ vmdisktype }}"
         datastore: "{{ vcenter.datastore }}"
       hardware:
         memory_mb: "{{ item.ram }}"
@@ -109,10 +128,10 @@
       folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
-      template: "{{ vcenter.template_name }}"
+      template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
       disk:
       - size_gb: "{{ item.disksize }}"
-        type: None
+        type: "{{ vmdisktype }}"
         datastore: "{{ vcenter.datastore }}"
       hardware:
         memory_mb: "{{ item.ram }}"
@@ -144,10 +163,10 @@
       folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
-      template: "{{ vcenter.template_name }}"
+      template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
       disk:
       - size_gb: "{{ item.disksize }}"
-        type: None
+        type: "{{ vmdisktype }}"
         datastore: "{{ vcenter.datastore }}"
       hardware:
         memory_mb: "{{ item.ram }}"
