@@ -26,7 +26,7 @@ Updated for create offline ova:
 ```
 ansible-playbook airgap_create_infra_ova.yml -e '{skip_sync_mirror: true}' -e @mcm-airgap-infra.yml
 ```
-Updated for create offline ova and manual prepare the mirro data and ova (since they are too large):
+Updated for create offline ova and manual prepare the mirror data and ova (since they are too large):
 ```
 ansible-playbook airgap_create_infra_ova.yml -e '{skip_sync_mirror: true}' -e '{skip_download_ova: true}' -e '{skip_mirror_to_file: true}' -e @mcm-airgap-infra.yml
 ```
