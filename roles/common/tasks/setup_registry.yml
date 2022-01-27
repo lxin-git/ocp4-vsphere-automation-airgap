@@ -6,11 +6,21 @@
       with_items: ["auth","certs","data"]
       become: true
 
-    - name: Create a certificate
+    - name: Create a certificate (rhel 7)
+      command:
+        cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 3650 -out domain.crt -subj "/C=US/ST=California/L=Sunnyvale/O=Red Hat, Inc./OU=Solution Architecture/CN={{ registry.host }}"
+        # openssl command in rhel 7 do not have --addext option
+        chdir: /opt/registry/certs
+      become: true
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == '7'
+
+    - name: Create a certificate (rhel 8)
       command:
         cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 3650 -out domain.crt -subj "/C=US/ST=California/L=Sunnyvale/O=Red Hat, Inc./OU=Solution Architecture/CN={{ registry.host }}" -addext "subjectAltName = DNS:registry.{{ config.cluster_name }}.{{ config.base_domain }}"
         chdir: /opt/registry/certs
       become: true
+      when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == '8'
+
 
     - name: Create a username and password in a httpasswd file
       command:
