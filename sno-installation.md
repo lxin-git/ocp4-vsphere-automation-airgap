@@ -106,3 +106,45 @@ select `Available subnets`, click `Next`
 click `Install cluster`
 
 wait for finish.
+
+
+
+## deploy hostpath provisioner
+
+```
+kubectl create -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.yaml
+kubectl create -f https://raw.githubusercontent.com/kubevirt/hostpath-provisioner-operator/main/deploy/namespace.yaml
+kubectl create -f https://raw.githubusercontent.com/kubevirt/hostpath-provisioner-operator/main/deploy/webhook.yaml -n hostpath-provisioner
+kubectl create -f https://raw.githubusercontent.com/kubevirt/hostpath-provisioner-operator/main/deploy/operator.yaml -n hostpath-provisioner
+```
+
+Create following CR & SC:
+```
+cat << EOF | oc apply -f -
+apiVersion: hostpathprovisioner.kubevirt.io/v1beta1
+kind: HostPathProvisioner
+metadata:
+  name: hostpath-provisioner
+spec:
+  imagePullPolicy: Always
+  storagePools:
+    - name: "local"
+      path: "/var/hpvolumes"
+  workload:
+    nodeSelector:
+      kubernetes.io/os: linux
+EOF
+```
+
+```
+cat << EOF | oc apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: hostpath-csi
+provisioner: kubevirt.io.hostpath-provisioner
+reclaimPolicy: Delete
+parameters:
+  storagePool: local
+EOF
+```
