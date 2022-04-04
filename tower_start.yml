@@ -94,3 +94,5 @@
     - name: Performing the postinstall check action
       import_role:
         name: postinstall
+
+
