@@ -1,0 +1,51 @@
+    #- name: Copy our single-node-ignition-config.ig file to our iso directory
+    #  shell:
+    #    set -o pipefail;
+    #    cat /root/ocp4-vsphere-automation/install-dir/sno/bootstrap-in-place-for-live-iso.ign |
+    #    jq . > /root/ocp4-vsphere-automation/install-dir/sno/iso.ign
+
+    #- name: Register ignition file content as a variable
+    #  shell: cat /root/ocp4-vsphere-automation/install-dir/sno/bootstrap-in-place-for-live-iso.ign |jq '.storage.files[]|select(.path == "/usr/#local/bin/install-to-disk.sh")|.contents.source'|tr -d '"'|awk -F, '{print $NF}'     
+    #  register: ign_extract_result
+#
+    #- debug:
+    #    msg: "{{ ign_extract_result.stdout }}"
+#
+    #- name: "decoded the ign_result.stdout string"
+    #  debug:
+    #    msg: "{{ ign_extract_result.stdout | b64decode }}"
+    #
+    #- name: set facts for decoded ign piece
+    #  set_fact:
+    #     ign_extract_decoded_content: "{{ ign_extract_result.stdout | b64decode }}"
+#
+    #- name: "replace coreos-installer action to copy network"
+    #  set_fact:
+    #    ign_replace_encoded_content: "{{ ign_extract_decoded_content | regex_replace('coreos-installer install -i /opt/openshift/master.ign',#'coreos-installer install -n -i /opt/openshift/master.ign') | b64encode }}"    
+    #
+    #- name: generate a new bootstrap ign file
+    #  copy:
+    #    src:  /root/ocp4-vsphere-automation/install-dir/sno/bootstrap-in-place-for-live-iso.ign
+    #    dest:  /root/ocp4-vsphere-automation/install-dir/sno/sno-bootstrap.ign
+    #    remote_src: yes
+#
+    #- name: replace the new content for ign file
+    #  replace:
+    #    path: /root/ocp4-vsphere-automation/install-dir/sno/sno-bootstrap.ign
+    #    regexp: "{{ ign_extract_result.stdout }}"
+    #    replace: "{{ ign_replace_encoded_content }}"
+
+  - name: Prepare sshkey
+    include: 00-prepare-sshkey.yml
+
+  - name: Recreate and revise ign file
+    include: 02-recreate-revise-ign.yml
+
+  - name: Embed ISO file
+    include: 03-embed-iso.yml
+
+  - name: Import ISO file and Power-on vm
+    include: 04-import-iso.yml
+
+  - name: Update named & haproxy for sno config
+    include: 05-update-haproxy.yml

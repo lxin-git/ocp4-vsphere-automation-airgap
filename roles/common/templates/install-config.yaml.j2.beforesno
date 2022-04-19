@@ -3,7 +3,7 @@ baseDomain: {{ config.base_domain }}
 compute:
 - hyperthreading: Enabled
   name: worker
-{% if config.provider is defined and 'none' in config.provider and not sno.enabled %}
+{% if config.provider is defined and 'none' in config.provider %}
   replicas: {{ worker_vms | length }}
 {% else %}
   replicas: 0
@@ -11,11 +11,7 @@ compute:
 controlPlane:
   hyperthreading: Enabled
   name: master
-{% if sno.enabled %}
-  replicas: 1
-{% else %}
   replicas: {{ master_vms | length }}
-{% endif %}
 metadata:
   name: {{ config.cluster_name }}
 platform:
@@ -28,17 +24,6 @@ platform:
     password: {{ vcenter.service_account_password }}
     datacenter: {{ vcenter.datacenter }}
     defaultDatastore: {{ vcenter.datastore }}
-{% endif %}
-{% if sno.enabled %}
-networking:
-  networkType: OpenShiftSDN
-  clusterNetworks:
-  - cidr: 10.128.0.0/14
-    hostPrefix: 23
-  serviceNetwork:
-  - 172.30.0.0/16
-BootstrapInPlace:
-  InstallationDisk: {{ sno.installationdisk }}
 {% endif %}
 fips: {{ config.fips }}
 pullSecret: '{{ config.pull_secret | to_json }}'

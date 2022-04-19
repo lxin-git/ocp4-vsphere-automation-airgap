@@ -1,0 +1,13 @@
+  - name: Write out "{{ dns.domain | lower }}" zone file to reflect sno config
+    template:
+      src: ../templates/sno.zonefile.j2
+      dest: /var/named/zonefile.db
+    notify:
+      - restart bind
+
+  - name: Write out haproxy config file to reflect sno config
+    template:
+      src: ../templates/sno.haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+    notify:
+      - restart haproxy

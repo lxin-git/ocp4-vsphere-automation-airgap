@@ -1,0 +1,47 @@
+  #- name: Wait for ssh ready
+  #  local_action: wait_for port=22 host="{{ sno_ip }}" delay=5 timeout=300
+  
+  - name: Sleep for 300 seconds and continue with play
+    wait_for:
+      host: "{{ sno_ip }}"
+      port: 22
+      delay: 5
+      timeout: 300
+    delegate_to: "9.112.238.98"
+    remote_user: root
+
+  
+  - name: Echo a hello message
+    command: touch /tmp/coming.txt
+    become: yes
+ 
+  - name: Wait for bootstrap & install complete...
+    #command: "{{ helper_vm.workdir }}/postinstall.sh"
+    stat:
+      path: "/usr/local/bin/bootstrap-service-record.sh"
+    become: yes
+    register: bootstrap_res
+    retries: 100
+    delay: 10
+    until: not bootstrap_res.stat.exists
+    ignore_unreachable: yes
+
+  - name: Sleep for 300 seconds and continue with play
+    wait_for:
+      host: "{{ sno_ip }}"
+      port: 22
+      delay: 5
+      timeout: 300
+    delegate_to: "9.112.238.98"
+    remote_user: root
+
+  - name: Echo a hello message
+    command: touch /tmp/this-is-master-now.txt
+    become: yes
+
+
+#  - name: Check and update hostname
+#    include: hostname-update.yml
+#
+#  - name: DNS configure
+#    include: dns-update.yml

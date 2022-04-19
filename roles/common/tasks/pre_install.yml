@@ -52,15 +52,17 @@
         src: "roles/common/templates/install-config.yaml.j2"
         dest: "{{ helper_vm.workdir }}/install-dir/install-config.yaml"
 
-    - name: Run steps pertaining to proxy, if any
-      include: handle_proxy.yml
-      when:
-        - proxy is defined
-        - proxy.enabled == true
-
     - name: Backup the install-config.yaml file
       copy:
         remote_src: yes
         src: "{{ helper_vm.workdir }}/install-dir/install-config.yaml"
         dest: "{{ helper_vm.workdir }}/install-dir/install-config.yaml.orig"
       when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false)
+
+    - name: Run steps pertaining to proxy, if any
+      include: handle_proxy.yml
+      when:
+        - proxy is defined
+        - proxy.enabled == true
+
+

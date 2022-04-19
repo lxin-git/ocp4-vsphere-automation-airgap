@@ -1,0 +1,26 @@
+    - name: Put coreos-installer to /usr/local/bin
+      copy:
+        remote_src: yes
+        src: "{{ helper_vm.workdir }}/downloads/coreos-installer"
+        dest: /usr/local/bin
+        mode: 0755
+
+    - name: Embed ignition file into CoreOS boot iso
+      shell: >
+          coreos-installer
+          iso ignition embed
+          -fi {{ sno_installdir }}/sno-bootstrap.ign
+          {{ iso_dir }}/rhcos-installer.iso
+      register: create_sno_boot_iso
+      changed_when: create_sno_boot_iso.rc != 0
+      failed_when: create_sno_boot_iso.rc != 0
+
+    - name: Embed ignition file into CoreOS boot iso
+      shell: >
+          coreos-installer iso 
+          kargs modify 
+          -a "ip={{ sno.ip }}::{{ sno.gateway }}:{{ sno.netmask }}:sno-bootstrap:{{ sno.nic }}:off:{{ sno.public_dns1 }}:{{ sno.public_dns2 }}"
+          {{ iso_dir }}/rhcos-installer.iso
+      register: create_sno_customise_network
+      changed_when: create_sno_customise_network.rc != 0
+      failed_when: create_sno_customise_network.rc != 0

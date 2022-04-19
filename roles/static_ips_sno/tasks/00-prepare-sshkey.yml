@@ -1,0 +1,23 @@
+    - name: Fetch the publick key (installer_ssh_key)
+      fetch:
+        src: ~/.ssh/ocp4.pub
+        dest: "{{ playbook_dir }}/{{ inventory_hostname }}_ocp4.pub"
+        flat: yes
+        
+    - name: Fetch the private key
+      fetch:
+        src: ~/.ssh/ocp4
+        dest: "{{ playbook_dir }}/{{ inventory_hostname }}_ocp4"
+        flat: yes
+
+    - name: Change file permissions for private key (local_action)
+      local_action: 
+        module: ansible.builtin.file
+        path: "{{ playbook_dir }}/{{ inventory_hostname }}_ocp4"
+        mode: '0600'     
+
+    - name: Set authorized key took from file
+      authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', '{{ playbook_dir }}/{{ inventory_hostname }}_ocp4.pub') }}"

@@ -114,9 +114,3 @@
       copy:
         content: "{{ install_config | to_nice_yaml }}"
         dest: "{{ helper_vm.workdir }}/install-dir/install-config.yaml"
-
-    - name: Backup the install-config.yaml file
-      copy:
-        src: "{{ helper_vm.workdir }}/install-dir/install-config.yaml"
-        dest: "{{ helper_vm.workdir }}/install-dir/install-config.yaml.orig"
-        remote_src: yes

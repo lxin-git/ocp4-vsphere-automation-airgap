@@ -1,3 +1,9 @@
+    - name: Backup the install-config.yaml file
+      copy:
+        src: "{{ helper_vm.workdir }}/install-dir/install-config.yaml"
+        dest: "{{ helper_vm.workdir }}/install-dir/install-config.yaml.preinst"
+        remote_src: yes
+
     - name: Generate the ignition manifests
       command: "openshift-install create manifests --dir={{ helper_vm.workdir }}/install-dir"
 

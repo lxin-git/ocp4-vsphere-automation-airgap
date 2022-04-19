@@ -1,0 +1,65 @@
+    - name: Clean sno_installdir before start
+      file:
+        path: "{{ sno_installdir }}"
+        state: absent
+
+    - name: Create sno_installdir directory if it does not exist
+      file:
+        path: "{{ sno_installdir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy the install-config.yaml to sno_installdir
+      copy:
+        src: "{{ helper_vm.workdir }}/install-dir/install-config.yaml.preinst"
+        dest: "{{ sno_installdir }}/install-config.yaml"
+        remote_src: yes
+
+    - name: Create SNO install ignition config
+      command:
+        cmd: >
+          openshift-install
+          --dir={{ sno_installdir }}
+          create
+          single-node-ignition-config
+      args:
+        creates: "{{ sno_installdir }}/bootstrap-in-place-for-live-iso.ign"
+
+    - name: Copy the kubeadmin-password and kubeconfig to install-dir/auth
+      copy:
+        src: "{{ sno_installdir }}/auth/{{ item }}"
+        dest: "{{ helper_vm.workdir }}/install-dir/auth/{{ item }}"
+        follow: yes
+        remote_src: yes
+      with_items: ["kubeadmin-password","kubeconfig"]
+
+    - name: Register ignition file content as a variable
+      shell: cat {{ sno_installdir }}/bootstrap-in-place-for-live-iso.ign |jq '.storage.files[]|select(.path == "/usr/local/bin/install-to-disk.sh")|.contents.source'|tr -d '"'|awk -F, '{print $NF}'     
+      register: ign_extract_result
+
+    - debug:
+        msg: "{{ ign_extract_result.stdout }}"
+
+    - name: "decoded the ign_result.stdout string"
+      debug:
+        msg: "{{ ign_extract_result.stdout | b64decode }}"
+    
+    - name: set facts for decoded ign piece
+      set_fact:
+         ign_extract_decoded_content: "{{ ign_extract_result.stdout | b64decode }}"
+
+    - name: "replace coreos-installer action to copy network"
+      set_fact:
+        ign_replace_encoded_content: "{{ ign_extract_decoded_content | regex_replace('coreos-installer install -i /opt/openshift/master.ign','coreos-installer install -n -i /opt/openshift/master.ign') | b64encode }}"    
+    
+    - name: generate a new bootstrap ign file
+      copy:
+        src:  "{{ sno_installdir }}/bootstrap-in-place-for-live-iso.ign"
+        dest:  "{{ sno_installdir }}/sno-bootstrap.ign"
+        remote_src: yes
+
+    - name: replace the new content for ign file
+      replace:
+        path: "{{ sno_installdir }}/sno-bootstrap.ign"
+        regexp: "{{ ign_extract_result.stdout }}"
+        replace: "{{ ign_replace_encoded_content }}"

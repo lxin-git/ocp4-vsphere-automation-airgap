@@ -53,36 +53,65 @@
         var: ansible_python_version
         verbosity: 1
 
-    - name: Download get-pip.py for Python 2
+    - name:  Set the ansible_python_major_version facts, which will be used to identify get_pip approach
+      set_fact:
+        ansible_python_major_version: "{{ ansible_python_version |regex_replace('\\.[^.]+$') }}"
+
+    - name: Download get-pip.py for Python Archived
       get_url:
-          url: 'https://bootstrap.pypa.io/pip/2.7/get-pip.py'
+          url: "https://bootstrap.pypa.io/pip/{{ ansible_python_major_version }}/get-pip.py"
           dest: /tmp/get-pip.py
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"
+      when: ansible_python_major_version in ["2.6","2.7","3.2","3.3","3.4","3.5","3.6"]
+
+    - name: Download get-pip.py for Python Latest
+      get_url:
+          url: "https://bootstrap.pypa.io/pip/{{ ansible_python_major_version }}/get-pip.py"
+          dest: /tmp/get-pip.py
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"
+      when: ansible_python_major_version not in ["2.6","2.7","3.2","3.3","3.4","3.5","3.6"]
+
+
+      #when: ansible_python_version is match("2.*")
+     
+    #- name: Download get-pip.py for Python 3
+    #  get_url:
+    #      url: 'https://bootstrap.pypa.io/get-pip.py'
+    #      dest: /tmp/get-pip.py
+    #  environment:
+    #    http_proxy: "{{ helper_vm.proxy_env }}"
+    #    https_proxy: "{{ helper_vm.proxy_env }}"
+    #  when: ansible_python_version is match("3.*")
+    
+    - name: Install pip with get-pip.py (python2)
+      command: python /tmp/get-pip.py
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
       when: ansible_python_version is match("2.*")
 
-    - name: Download get-pip.py for Python 3
-      get_url:
-          url: 'https://bootstrap.pypa.io/get-pip.py'
-          dest: /tmp/get-pip.py
+    - name: Install pip with get-pip.py (python3)
+      command: python3 /tmp/get-pip.py
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
       when: ansible_python_version is match("3.*")
-
-    - name: Install pip with get-pip.py
-      command: python /tmp/get-pip.py
-      environment:
-        http_proxy: "{{ helper_vm.proxy_env }}"
-        https_proxy: "{{ helper_vm.proxy_env }}"
-
+       
     - name: Upgrade pip setuptools
       command: pip install setuptools --upgrade
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
 
+    #- name: Install or update pip
+    #  community.general.easy_install:
+    #    name: pip
+    #    state: latest
+    
     - name: Install pyvmomi
       pip:
         name: pyvmomi
@@ -196,7 +225,17 @@
       environment:
         http_proxy: "{{ helper_vm.proxy_env }}"
         https_proxy: "{{ helper_vm.proxy_env }}"
-      when: ocp_major_version in ["4.3","4.4","4.5"]
+      when: ocp_major_version in ["4.3","4.4","4.5"] or sno.enabled
+
+    - name: Download coreos-installer for SNO
+      get_url:
+        url: "{{ download.coreosinstaller}}"
+        dest: "{{ helper_vm.workdir }}/downloads/coreos-installer"
+        validate_certs: no
+      environment:
+        http_proxy: "{{ helper_vm.proxy_env }}"
+        https_proxy: "{{ helper_vm.proxy_env }}"
+      when: sno.enabled
 
     - name: Copy the nfs provisioner docker image to local disk
       #command: "skopeo copy docker://quay.io/external_storage/nfs-client-provisioner:latest docker-archive:{{ helper_vm.workdir }}/downloads/nfs-client-provisioner.tar"

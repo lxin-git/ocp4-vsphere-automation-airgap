@@ -113,3 +113,21 @@ ocpconfig:
   storage:
     setup_nfs_sc: true  # decide whether you want setup nfs-storage-provisioner immediatly after ocp ready
     setup_nfs_image: k8s.gcr.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2 # change the old nfs provisioner image, fix kube v1.20+ nfs provisioner "selfLink was empty" issue, as quay.io/external_storage/nfs-client-provisioner:latest not work for kube v1.20+
+
+  #---------------------------------------------------------
+  # Specific configure for Single Node Openshift deployment
+  #---------------------------------------------------------
+  sno:
+    enabled: true
+    network: DPortGroup
+    name: "{{'{{'}}config.cluster_name{{'}}'}}-ocp"
+    nic: ens192
+    ip: 10.0.2.216
+    netmask: 255.255.255.0
+    gateway : 10.0.2.254
+    public_dns1: 9.112.252.58
+    public_dns2: 9.110.183.72
+    cpu: 8
+    ram: 32768
+    disksize: 200
+    installationdisk: /dev/sda

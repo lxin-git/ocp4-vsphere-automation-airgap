@@ -34,6 +34,7 @@
       - { key: "ova", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.ova') }}" }
       - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-linux-.*.tar.gz') }}" }
       - { key: "openshiftInstall", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-install-linux-.*.tar.gz') }}" }
+      - { key: "coreosinstaller", value: "{{ download.clients_url | regex_replace('(http.*)\/ocp\/.*$', '\\1\/coreos-installer\/latest\/coreos-installer') }}"}
 
   #- debug:
   #    msg: "{{ download }}"

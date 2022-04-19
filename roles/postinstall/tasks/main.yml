@@ -4,6 +4,14 @@
     dest: "{{ helper_vm.workdir }}"
     mode: 755
 
+- name: Transfer the postinstall script for sno
+  copy:
+    src: ../files/sno.postinstall.sh
+    dest: "{{ helper_vm.workdir }}/postinstall.sh"
+    follow: yes
+    mode: 755
+  when: sno.enabled
+
 - name: Wait for bootstrap & install complete...
   command: "{{ helper_vm.workdir }}/postinstall.sh"
   register: cmd_res
@@ -14,7 +22,7 @@
 - name: Delete Bootstrap VM
   command: "{{ helper_vm.workdir }}/bin/govc vm.destroy {{vcenter.folder_absolute_path}}/{{ item.name }}"  # noqa 301
   loop: "{{ bootstrap_vms }}"
-  when: cmd_res.rc == 0
+  when: cmd_res.rc == 0 and not sno.enabled
 
 - name: Fetch kubeadmin password content
   slurp:

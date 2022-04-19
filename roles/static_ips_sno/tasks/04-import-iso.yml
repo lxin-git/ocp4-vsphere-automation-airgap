@@ -1,0 +1,37 @@
+
+  - name: Create SNO VM from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      cluster: "{{ vcenter.cluster}}"
+      resource_pool: "{{ vcenter.resource_pool }}"
+      guest_id: "rhel7_64Guest"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ sno.name }}"
+      state: "poweredoff"
+      disk:
+      - size_gb: "{{ sno.disksize }}"
+        type: None
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: "{{ sno.ram }}"
+        num_cpus: "{{ sno.cpu }}"
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ sno.network }}"
+      wait_for_ip_address: no
+
+  - name: Upload all the custom generated ISOs to the datastore
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/rhcos-installer.iso sno-rhcos-installer.{{ ocp_infrastructureName_hash.stdout}}.iso"
+
+  - name: Add a cdrom device to all the OpenShift VMs
+    command: "govc device.cdrom.add -vm {{ sno.name }}"
+
+  - name: Insert the uploaded ISO file sno-rhcos-installer.{{ ocp_infrastructureName_hash.stdout}}.iso as cdrom to VM {{ sno.name }}
+    command: "govc device.cdrom.insert -vm {{ sno.name }} -ds {{ vcenter.datastore }} ./sno-rhcos-installer.{{ ocp_infrastructureName_hash.stdout}}.iso"
+
+  - name: Power-On all the VMs
+    command: "govc vm.power -on {{ sno.name }}"
