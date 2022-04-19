@@ -364,35 +364,6 @@ ocpconfig:
 - support x86-64 arch only
 - attache more disks to worker nodes not support at this moment
 - creds are displayed in plaintext in the configure yml, vault hasn't been introduced
-- 
-
-## magic parameters
-skip_download_ova
-skip_sync_mirror
-clean
-restricted_network
-
-If you have you existing infra node deployed and finished all package install and image download, when you rerun the playbook, it will not download again, you can force clean existing download by `-e clean=true`
-
-If you have you existing infra node deployed and finished ova download for ocp4.6+, you can use `-e skip_download_ova=true`
-
-In some cases of airgap installation, you may need create a smaller ova template for vsphere to import, and you don't want the ocp mirror data included in the ova, you can use `-e skip_sync_mirror`. with this parameter, the 6+ G mirror data won't be included in the infra node ova file, you should mirror it your self and copy to the infra node before run the actual deployment playbook.
-
-To manually generate the mirror data, here is the exampe:
-```
-export OCP_RELEASE='4.5.20'
-export LOCAL_REGISTRY='xbox-mirror.fyre.ibm.com:5000'
-export LOCAL_REPOSITORY='ocp4/openshift4'
-export PRODUCT_REPO='openshift-release-dev'
-export LOCAL_SECRET_JSON='/data/images/mirror-data/pull-secret.json'
-export RELEASE_NAME="ocp-release"
-export ARCHITECTURE='x86_64'
-export REMOVABLE_MEDIA_PATH='/data/images/mirror-data/ocp4.5.20'
-./oc adm release mirror -a ${LOCAL_SECRET_JSON} --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
-
-# The mirror data will be stored in /data/images/mirror-data/ocp4.5.20/mirror
-```
-
 
 ## Known issues (deprecated)
 
