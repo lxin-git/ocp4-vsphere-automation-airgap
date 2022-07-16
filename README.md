@@ -139,11 +139,12 @@ You have two options to create the VM:
 > And after the VM created, the overall ova file size will grow up to about 15G. Make sure your target vsphere environment can tolerate such kind of big ova import.    
 
 To Create VM with release image mirrored, go to your ansible control manager, and run the following command:
-
+> Please make sure `registry.enabled` set to `true` in the cluster configure yaml before you start the playbook.
 ```
 cd ocp4-vsphere-automation-airgap
 ansible-playbook airgap_create_infra_ova.yml -e @mycluster.yml
 ```
+
 Where the `mycluster.yaml` is the openshift deployment parameters yaml file which can be reused for later installation.
 
 - **2. Create VM to skip release image mirror**

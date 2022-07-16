@@ -25,7 +25,7 @@
       wait_for_ip_address: no
 
   - name: Upload all the custom generated ISOs to the datastore
-    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/rhcos-installer.iso sno-rhcos-installer.{{ ocp_infrastructureName_hash.stdout}}.iso"
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/sno-rhcos-installer.iso sno-rhcos-installer.{{ ocp_infrastructureName_hash.stdout}}.iso"
 
   - name: Add a cdrom device to all the OpenShift VMs
     command: "govc device.cdrom.add -vm {{ sno.name }}"

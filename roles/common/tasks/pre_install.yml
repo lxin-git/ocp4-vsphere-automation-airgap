@@ -27,12 +27,12 @@
     - name: Fetch the installer_ssh_key
       fetch:
         src: ~/.ssh/ocp4.pub
-        dest: "{{ playbook_dir }}/{{ inventory_hostname }}_ocp4.pub"
+        dest: "{{ playbook_dir }}/{{ helper_vm.public_ip }}_ocp4.pub"
         flat: yes
 
     - name: Set the installer_ssh_key facts j2 template used later
       set_fact:
-        installer_ssh_key: "{{ lookup('file', '{{ playbook_dir }}/{{ inventory_hostname }}_ocp4.pub') }}"
+        installer_ssh_key: "{{ lookup('file', '{{ playbook_dir }}/{{ helper_vm.public_ip }}_ocp4.pub') }}"
 
     - name: Must always clean install-dir before generate install-config
       file:

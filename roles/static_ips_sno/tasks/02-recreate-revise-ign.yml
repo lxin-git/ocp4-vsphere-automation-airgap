@@ -63,3 +63,36 @@
         path: "{{ sno_installdir }}/sno-bootstrap.ign"
         regexp: "{{ ign_extract_result.stdout }}"
         replace: "{{ ign_replace_encoded_content }}"
+
+
+# -------------------------------------------------------------
+#  As we enabled sno here, the new install-config in {{ sno_installdir }}
+#  Re-update the vm folder according to sno hash
+#
+#  Only apply to v4.5+, a new hash value required for vm folder
+#  Otherwise, the vsphere volume storage class not work.
+# -------------------------------------------------------------
+    - name: Get current openshift-install infrastructureName hash value
+      command: jq -r .infraID "{{ sno_installdir }}/metadata.json"
+      register: ocp_infrastructureName_hash
+      when: ocp_major_version not in ["4.3","4.4"]
+
+    - name: Get current folder path where infra node exists
+      shell: govc find -type m -name={{ helper_vm.hostname }}|sed "s/\/{{ helper_vm.hostname }}//g"
+      register: old_vmpath_check_result
+      when: ocp_major_version not in ["4.3","4.4"]
+
+    - name: "Show old vm path "
+      debug:
+        msg: "{{ old_vmpath_check_result.stdout }}"
+
+    - name: Update VM folder for new hash value
+      #command: "govc object.rename {{ vcenter.folder_absolute_path }} {{ ocp_infrastructureName_hash.stdout}}"
+      command: "govc object.rename {{ old_vmpath_check_result.stdout }} {{ ocp_infrastructureName_hash.stdout}}"
+      when: ocp_major_version not in ["4.3","4.4"]
+
+    - name: Update the vcenter.folder_absolute_path for new hash
+      set_fact:
+        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+ocp_infrastructureName_hash.stdout}, recursive=True) }}"
+      when: vcenter.folder_absolute_path is defined and ocp_major_version not in ["4.3","4.4"]
+# -------------------------------------------------------------

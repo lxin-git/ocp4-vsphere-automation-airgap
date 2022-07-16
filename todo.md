@@ -1,0 +1,3 @@
+- SNO deployment
+  - Fix NFS export IP range and nfs-provisioner deployment NFS Server Spec
+  - The absolute vm folder need to be updated with the sno install config metadata. 

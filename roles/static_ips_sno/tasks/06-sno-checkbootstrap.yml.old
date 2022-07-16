@@ -59,33 +59,7 @@
   - name: Echo a hello message
     command: touch /tmp/coming.txt
     become: yes
-
-  - name: bootstrap node - Configure dnsmasq
-    template:
-      src: "single-node.conf.j2"
-      dest: "/etc/dnsmasq.d/single-node.conf"
-      mode: '0644'
-    become: yes
-
-  - name: bootstrap node - Enable and Restart service dnsmasq
-    service:
-      name: dnsmasq
-      state: restarted
-      enabled: yes
-    become: yes
-
-  - name: bootstrap node - Configure NetworkManager to update forcedns
-    template:
-      src: "forcedns.j2"
-      dest: "/etc/NetworkManager/dispatcher.d/forcedns"
-      mode: '0755'
-    become: yes
-
-  - name: bootstrap node - Active nic with NetworkManager to flush resolv.conf
-    command: "nmcli con up {{ sno.nic }}"
-    become: yes
-
-
+ 
   - name: Wait for bootstrap & install complete...
     #command: "{{ helper_vm.workdir }}/postinstall.sh"
     stat:
