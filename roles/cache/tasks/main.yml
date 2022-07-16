@@ -15,10 +15,6 @@
       http_proxy: "{{ helper_vm.proxy_env }}"
       https_proxy: "{{ helper_vm.proxy_env }}"
     register: dependencies_content
-
-  - name: Set coreosinstaller download url
-    set_fact:
-      coreosinstaller_downloadurl: "{{ download.clients_url | regex_replace('(http.*)\/ocp\/.*$', '\\1\/coreos-installer\/latest\/coreos-installer') }}"
     
   - name:  Set the download facts for webservers group, which will be used later
     set_fact:
