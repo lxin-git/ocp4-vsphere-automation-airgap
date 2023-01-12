@@ -7,7 +7,8 @@
     - name: Generate the ignition manifests
       command: "openshift-install create manifests --dir={{ helper_vm.workdir }}/install-dir"
 
-    - shell: "ls {{ helper_vm.workdir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
+    - name: Get manifest files to be removed
+      shell: "ls {{ helper_vm.workdir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
       register: master_machineset_files
       when: ocp_major_version not in ["4.2","4.3"]
 

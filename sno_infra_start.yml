@@ -1,0 +1,121 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Generate var file to landing extra vars
+      copy:
+        content: "{{ ocpconfig | to_nice_yaml }}"
+        dest: "current_ocpconfig.yml"
+    - name: Loading current ocpconfig var file
+      include_vars: current_ocpconfig.yml
+
+    - name: Prepare helper vars-static var file
+      template:
+        src: vars-static.j2
+        dest: "{{ playbook_dir }}/vars-static.yml"
+        mode: 0644
+        force: yes
+
+    # -------------------------
+    # Only for SNO Deployment
+    # -------------------------
+    - name: Add host to group [sno_bastion]
+      add_host:
+        groups: sno-bastion     
+        name: "{{ helper_vm.public_ip }}"
+        ansible_ssh_private_key_file: "{{ playbook_dir }}/{{ helper_vm.public_ip }}_ocp4"
+        host_key_checking: False
+      when: sno.enabled
+
+    - name: Add host to group [sno-bootstrap]
+      vars:
+        sno_keyfile: "{{ playbook_dir }}/{{ helper_vm.public_ip }}_ocp4"
+      add_host:
+        groups: sno-bootstrap     
+        name: "{{ sno.ip }}"
+        ansible_ssh_private_key_file: "{{ sno_keyfile }}"
+        host_key_checking: False
+        ansible_ssh_common_args: -o StrictHostKeyChecking=no -o ProxyCommand="ssh -W %h:%p root@{{ helper_vm.public_ip }} -i {{ sno_keyfile }} -o StrictHostKeyChecking=no"
+      when: sno.enabled
+      # -------------------------
+
+- hosts: localhost
+  gather_facts: True
+  vars_files:
+    - roles/helper/vars/main.yml
+  environment:
+    PATH: "{{ ocpconfig.helper_vm.workdir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ ocpconfig.vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ ocpconfig.vcenter.admin_password }}"
+    GOVC_URL: "https://{{ ocpconfig.vcenter.ip }}"
+    GOVC_INSECURE: 1
+  handlers:
+  - import_tasks: roles/helper/handlers/main.yml
+  tasks:
+    - name: Loading current ocpconfig var file to bastion node
+      include_vars: current_ocpconfig.yml
+    - name: include vars-static
+      include_vars: vars-static.yml
+    - name: validate hostnames
+      import_tasks: roles/helper/tasks/validate_host_names.yml
+    - name: Start helper function setup
+      import_role:
+        name: helper
+    - name: Set the cache of all the download links
+      include_role:
+        name: cache
+      when: restricted_network|default(False) == False
+    - name:  Set the ocp_major_version facts, which will be used to identify ova/iso approach
+      set_fact:
+        ocp_major_version: "{{ download.clients_url | regex_search('openshift-v4/clients/ocp/(.+)', '\\1') | first |regex_replace('\\.[^.]+$') }}"
+    - name: Create local automation directory
+      file:
+        path: "{{ helper_vm.workdir }}"
+        state: directory
+        mode: '0755'
+    - name: Run all the common tasks
+      import_role:
+        name: common
+    - name: Run the vmware role to setup vCenter folder
+      import_role:
+        name: vmware
+
+    # If version <= V4.5, we will use ISO to launch VMs
+    - name: Run steps specific to static ip and the use of ISO files
+      import_role:
+        name: static_ips
+      when: ocp_major_version in ["4.3","4.4","4.5"] and not sno.enabled
+
+    # If version is V4.6+, we have to use OVA to launch VMs
+    - name: Run steps specific to static ip and the use of an OVA file
+      import_role:
+        name: static_ips_ova
+      when: ocp_major_version not in ["4.3","4.4","4.5"] and not sno.enabled
+
+    - name: Run steps specific to static ip for SNO deployment
+      import_role:
+        name: static_ips_sno
+      when: sno.enabled
+
+- hosts: sno-bootstrap
+  gather_facts: False
+  remote_user: core
+  #become: yes
+  #become_method: sudo
+  tasks:
+    - name: Loading current ocpconfig var file to sno-bootstrap node
+      include_vars: current_ocpconfig.yml
+    - name: include vars-static
+      include_vars: vars-static.yml
+    - name: Start work for sno-bootstrap node
+      import_role:
+        name: static_ips_sno
+        tasks_from: 06-sno-checkbootstrap.yml
+      when: sno.enabled
+
+- hosts: localhost
+  gather_facts: True
+  tasks:
+    - name: Performing the postinstall check action
+      import_role:
+        name: postinstall

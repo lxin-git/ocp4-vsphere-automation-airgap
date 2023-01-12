@@ -24,6 +24,10 @@
       - name: "{{ sno.network }}"
       wait_for_ip_address: no
 
+  # Need make sure the disk.EnableUUID set to TRUE, otherwise vsphere volume will attach failed for thin/thin-csi storage classes.
+  - name: Update VM options on the template
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ sno.name }} -e=disk.EnableUUID=TRUE"
+
   - name: Upload all the custom generated ISOs to the datastore
     command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/sno-rhcos-installer.iso sno-rhcos-installer.{{ ocp_infrastructureName_hash.stdout}}.iso"
 
