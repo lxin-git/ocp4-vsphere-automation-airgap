@@ -26,6 +26,12 @@ cp mycluster.yml.sample mycluster.yml
 ansible-playbook tower_start.yml -e @mycluster.yml
 ```
 
+For Single Node Openshift deployment, run the following playbook, for sno configuration see [openshift cluster configuration](#cluster-configuration-sample) for SNO section:
+```
+ansible-playbook sno_start.yml -e @mycluster.yml
+```
+
+
 ## For Airgap Installatioin
 The Overall procedure like following digram:
 ![](./assets/README-ed47d.png)
