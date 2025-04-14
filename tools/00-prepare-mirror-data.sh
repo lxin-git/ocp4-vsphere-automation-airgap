@@ -5,7 +5,7 @@
 #                 - You have a stored secret file include your pull secret for both redhat and local registry
 # Outputs       : Step by Step logging info will pop to STDOUT
 # Err Outputs   :
-# Created by    : lixin@IBM
+# Created by    : lxin-git
 #         on    : 20210811
 # Updated by    :
 #         on    :

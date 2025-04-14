@@ -3,7 +3,7 @@
 # Script Name   : postinstall.sh (version 1.0)
 # Outputs       : Step by Step logging info will pop to STDOUT
 # Err Outputs   :
-# Created by    : lixin@IBM
+# Created by    : lxin-git
 #         on    : 20200922
 # Updated by    :
 #         on    :
