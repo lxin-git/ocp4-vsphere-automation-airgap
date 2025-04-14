@@ -17,6 +17,9 @@
         type: None
         datastore: "{{ vcenter.datastore }}"
       hardware:
+        hotadd_cpu: true        # enable hotadd_cpu
+        hotremove_cpu: true     # enable hotremove_cpu
+        hotadd_memory: true     # enable hotadd_memory
         memory_mb: "{{ sno.ram }}"
         num_cpus: "{{ sno.cpu }}"
         memory_reservation_lock: True

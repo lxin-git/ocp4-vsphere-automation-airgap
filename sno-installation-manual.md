@@ -32,13 +32,13 @@ cat << EOF > $NMSTATE_BODY
 dns-resolver:
   config:
     server:
-    - 9.112.252.58
-    - 9.110.183.72
+    - 172.112.252.58
+    - 172.110.183.72
 interfaces:
 - name: ens192
   ipv4:
     address:
-    - ip: 9.112.238.113
+    - ip: 172.112.238.113
       prefix-length: 24
     dhcp: false
     enabled: true
@@ -47,7 +47,7 @@ interfaces:
 routes:
   config:
   - destination: 0.0.0.0/0
-    next-hop-address: 9.112.238.1
+    next-hop-address: 172.112.238.1
     next-hop-interface: ens192
     table-id: 254
 EOF
@@ -83,7 +83,7 @@ curl -H "Content-Type: application/json" -X PATCH -d @$JSON_BODY "${AI_SVC_ENDPO
 ```
 ```
 [sno@xtool1 ~]$ curl -H "Content-Type: application/json" -X PATCH -d @$JSON_BODY "${AI_SVC_ENDPOINT}/api/assisted-install/v2/infra-envs/${AI_SVC_INFRA_ENV_ID}" -H "Authorization: Bearer ${AI_SVC_API_TOKEN}"
-{"cluster_id":"30639ea5-3fe4-479b-bfa7-de6fae4f11b0","cpu_architecture":"x86_64","created_at":"2022-03-22T16:43:17.387308Z","download_url":"https://api.openshift.com/api/assisted-images/images/28f4dcec-18da-41f7-b10c-cd7f97eac62f?arch=x86_64&image_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDc5ODE4OTcsInN1YiI6IjI4ZjRkY2VjLTE4ZGEtNDFmNy1iMTBjLWNkN2Y5N2VhYzYyZiJ9.nlQPH9vjNYtOom4RlUCZkWQ_JAN4UuZEY7NVjM6V2yc&type=full-iso&version=4.10","email_domain":"cn.ibm.com","expires_at":"2022-03-22T20:44:57.000Z","href":"/api/assisted-install/v2/infra-envs/28f4dcec-18da-41f7-b10c-cd7f97eac62f","id":"28f4dcec-18da-41f7-b10c-cd7f97eac62f","kind":"InfraEnv","name":"sno410_infra-env","openshift_version":"4.10","org_id":"12910881","proxy":{},"pull_secret_set":true,"ssh_authorized_key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCplu10AhHZcVE6gTktk4ry4JqbsBgft8tbr7wQePyjC5lcnXEEVB6/VXL7oOwL59bOxCUP/c+2mPP2ijxslXHN5VnODJWwhCrsNKFfCIOkytzzZc9hVb9q2ivpBsrr6poW76rfm0yyWk3ckyQ7CQJE4bym4UBQ3cK2Cl5UzDLmuWdvts+PJ6M7gyH1zP+8EEWKsf+RWKjMExsWmVETBzD9WKLUBk59nHOos09xdAeFz8glIP8E3qUzEdKC8MxLZgidVMjVJ18XDrV9Ijjzl1Vth4FsxqrS6T9p/HYC/g+TYSKVnkXDcG0hHcezxz8BYZANWaiIIO9McNA5C0e1klSR9PA9QTpq0yAyg/hpVUhad8ozlVQkpbrIQ565F4wx9rooeA8hXyAiX1o9s8VVZ+y7yjNmdhk0eZda32fPJM9tfzRY3mVPOeXrMJKo7RbyMnYx/ysx00QLs2tEIwpR0ZSGCZiMnOnmNl3CutGzh2UM/keK2ZIjKpkoQRa3Q+XhrkU= sno@xtool1.fyre.ibm.com","static_network_config":"dns-resolver:\n  config:\n    server:\n    - 9.112.252.58\n    - 9.110.183.72\ninterfaces:\n- name: ens192\n  ipv4:\n    address:\n    - ip: 9.112.238.113\n      prefix-length: 24\n    dhcp: false\n    enabled: true\n  state: up\n  type: ethernet\nroutes:\n  config:\n  - destination: 0.0.0.0/0\n    next-hop-address: 9.112.238.1\n    next-hop-interface: ens192\n    table-id: 254HHHHH00:50:56:8e:87:29=ens192","type":"full-iso","updated_at":"2022-03-22T16:44:58.475871Z","user_name":"llixinn"}
+{"cluster_id":"30639ea5-3fe4-479b-bfa7-de6fae4f11b0","cpu_architecture":"x86_64","created_at":"2022-03-22T16:43:17.387308Z","download_url":"https://api.openshift.com/api/assisted-images/images/28f4dcec-18da-41f7-b10c-cd7f97eac62f?arch=x86_64&image_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDc5ODE4OTcsInN1YiI6IjI4ZjRkY2VjLTE4ZGEtNDFmNy1iMTBjLWNkN2Y5N2VhYzYyZiJ9.nlQPH9vjNYtOom4RlUCZkWQ_JAN4UuZEY7NVjM6V2yc&type=full-iso&version=4.10","email_domain":...<omitted>...}
 ```
 You will see the `download_url`
 

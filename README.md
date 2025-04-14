@@ -39,10 +39,10 @@ The Overall procedure like following digram:
 ### 1. Download the offline images
 
 Take the deployment of openshift 4.8.28 as an example:
-- Download the ova template for deploying openshift:  [ocp-inf_nomirror.rh8.ova](http://xmedia-1.fyre.ibm.com:8080/templates/ocp-inf_nomirror.rh8.ova)
+- Download the ova template for deploying openshift:  [ocp-inf_nomirror.rh8.ova](http://xmedia-1.test.example.com:8080/templates/ocp-inf_nomirror.rh8.ova)
   For instructions on how to create a template, you can refer to this section: [Create Infra OVA](#create-infra-ova)
 
-- Download the mirror data corresponding to openshift version:  [image_mirror_ocp_release_4.8.28.tar](http://xmedia-1.fyre.ibm.com:8080/mirror/image_mirror_ocp_release_4.8.28.tar)
+- Download the mirror data corresponding to openshift version:  [image_mirror_ocp_release_4.8.28.tar](http://xmedia-1.test.example.com:8080/mirror/image_mirror_ocp_release_4.8.28.tar)
   Please refer to this document for how to generate the mirror data of the specified openshift version: [Prepare Mirror Data](#prepare-mirror-data)
 
 After downloading the above two files, you can copy them to the customer environment through a portable storage device.
@@ -65,13 +65,13 @@ The ova template you downloaded will be used to start the infra node of openshif
 * Set the vm ip address by `vim ~/network-init.sh`
 
 ```bash
-NEWHOSTNAME=mcm-inf.cn.ibm.com   # The new hostname for the infra node, usually set to <clustername>-inf.<base domain>
-PUBLIC_IP=9.112.238.102/24       # public ip address & net mask assigned to this infra node
-PUBLIC_GATEWAY=9.112.238.1       # public gateway address for this infra node
+NEWHOSTNAME=mcm-inf.cn.example.com   # The new hostname for the infra node, usually set to <clustername>-inf.<base domain>
+PUBLIC_IP=19.112.238.102/24       # public ip address & net mask assigned to this infra node
+PUBLIC_GATEWAY=19.112.238.1       # public gateway address for this infra node
 PRIVATE_IP=192.168.30.120/24     # private ip address & net mask assigned to this infra node
 PRIVATE_GATEWAY=192.168.30.254   # public gateway address for this infra node
-DNS1=9.112.252.58                # nameserver1
-DNS2=9.110.183.72                # nameserver2
+DNS1=19.112.252.58                # nameserver1
+DNS2=19.110.183.72                # nameserver2
 ```
 
 * After modifying the above parameters, run the script to complete the IP setting: `./network-init.sh`
@@ -174,7 +174,7 @@ ovftool vi://<vcenter_AdminUser>:<vcenter_AdminPassword>@<vcenter_url>/Datacente
 ```
 eg.
 ```
-ovftool vi://Administrator@myvc.cn.ibm.com:MYPASSW0RD@vc90.myvc.cn.ibm.com/Datacenter/vm/templates/ocp-infra /data/vmware/ocp-infra.ova
+ovftool vi://Administrator@myvc.cn.example.com:MYPASSW0RD@vc90.myvc.cn.example.com/Datacenter/vm/templates/ocp-infra /data/vmware/ocp-infra.ova
 ```
 
 ## Prepare Mirror Data
@@ -217,19 +217,19 @@ ocpconfig:
     hostname: mcm-inf  # >>> match your infra node hostname
     public_network: VM Network
     public_nic: ens192
-    public_ip: 9.112.238.116
+    public_ip: 19.112.238.116
     public_netmask: 255.255.255.0
-    public_gateway : 9.112.238.1
-    public_dnsdomain: cn.ibm.com # >>> public dns domain for infra node
-    public_dns1: 9.112.252.58
-    public_dns2: 9.110.183.72
+    public_gateway : 19.112.238.1
+    public_dnsdomain: cn.example.com # >>> public dns domain for infra node
+    public_dns1: 19.112.252.58
+    public_dns2: 19.110.183.72
     private_nic: ens224
     private_ip: 192.168.30.120 # >>> match your infra node private ip address
     rootpassword: Dem0@ring
     memory_mb: 16384
     num_cpus: 8
     disksize: 500
-    proxy_env: http://my-proxy.fyre.ibm.com:3128/
+    proxy_env: http://my-proxy.test.example.com:3128/
     workdir: /root/ocp4-vsphere-automation
   #--------------------------------------------
 
@@ -237,17 +237,17 @@ ocpconfig:
 
   config:
     provider: vsphere
-    base_domain: cn.ibm.com # >>> openshift cluster base domain
+    base_domain: cn.example.com # >>> openshift cluster base domain
     cluster_name: mcm # >>> openshift cluster name
     fips: false
     pull_secret: {"auths":{xxxxxx}} # >>> put your redhat pull secret here, airgap may not use it, but need something for playbook running, will fix later
   vcenter:
-    ip: 9.112.238.90 # >>> vcenter server ip address
+    ip: 19.112.238.90 # >>> vcenter server ip address
     datastore: ds_demo01 # >>> which data store you want use to create the vm for cluster nodes
     network: vlan30 # >>> the cluster private network name
-    service_account_username: Administrator@vcenter.cn.ibm.com # >>> vcenter service account name
+    service_account_username: Administrator@vcenter.cn.example.com # >>> vcenter service account name
     service_account_password: 'YourPass' # >>> vcenter service account password
-    admin_username: Administrator@vcenter.cn.ibm.com  # >>> vcenter service account name
+    admin_username: Administrator@vcenter.cn.example.com  # >>> vcenter service account name
     admin_password: 'YourPass'  # >>> vcenter service account password
     datacenter: Datacenter0 # >>> datacenter name defined in vcenter
     cluster: cluster0 # >>> cluster name defined in vcenter
@@ -289,8 +289,8 @@ ocpconfig:
   # If you don't have direct internet access, you can leverage the proxy, set it to true if required.
   proxy:
     enabled: false
-    http_proxy: http://9.111.141.91:3128/
-    https_proxy: http://9.111.141.91:3128/
+    http_proxy: http://19.111.141.91:3128/
+    https_proxy: http://19.111.141.91:3128/
     no_proxy: "{{'{{'}} config.cluster_name {{'}}'}}.{{'{{'}} config.base_domain {{'}}'}}"
     cert_content:
 
@@ -335,35 +335,35 @@ ocpconfig:
     ip: 10.0.2.216 # >>> SNO ip address
     netmask: 255.255.255.0 # >>> SNO ip address
     gateway : 10.0.2.254 # >>> SNO gateway
-    public_dns1: 9.112.252.58 # >>> dns1
-    public_dns2: 9.110.183.72 # >>> dns2
+    public_dns1: 19.112.252.58 # >>> dns1
+    public_dns2: 19.110.183.72 # >>> dns2
     cpu: 8 # >>> sno vcpu setting
     ram: 32768 # >>> sno memory setting (mb)
     disksize: 200 # >>> sno disk setting (gb)
     installationdisk: /dev/sda # >>> the installed disk. let it be default if not sure.
 ```
 
-## Supported Downloadable Contents
+## Supported Downloadable Contents (deprecated)
 
-> You're required to be IBM intranet to download these contents
+> You're required to be example.com intranet to download these contents
 
 - Available Infra Node ova templates:
 
 | Downloadable Ova template |
 |---|
-| [rhel7-infranode-without-mirror-data](http://xmedia-1.fyre.ibm.com:8080/templates/ocp-inf_nomirror.rh7.ova) |
-| [rhel8-infranode-without-mirror-data](http://xmedia-1.fyre.ibm.com:8080/templates/ocp-inf_nomirror.rh8.ova) |
+| [rhel7-infranode-without-mirror-data](http://xmedia-1.test.example.com:8080/templates/ocp-inf_nomirror.rh7.ova) |
+| [rhel8-infranode-without-mirror-data](http://xmedia-1.test.example.com:8080/templates/ocp-inf_nomirror.rh8.ova) |
 
 - Available Openshift Release Mirror data:
 
 | Mirror Data Bundle |
 |---|
-| [v4.5.33](http://xmedia-1.fyre.ibm.com:8080/mirror/image_mirror_ocp_release_4.5.33.tar) |
-| [v4.6.42](http://xmedia-1.fyre.ibm.com:8080/mirror/image_mirror_ocp_release_4.6.42.tar) |
-| [v4.7.39](http://xmedia-1.fyre.ibm.com:8080/mirror/image_mirror_ocp_release_4.6.42.tar) |
-| [v4.8.13](http://xmedia-1.fyre.ibm.com:8080/mirror/image_mirror_ocp_release_4.8.13.tar) |
-| [v4.8.28](http://xmedia-1.fyre.ibm.com:8080/mirror/image_mirror_ocp_release_4.8.28.tar) |
-| [v4.9.17](http://xmedia-1.fyre.ibm.com:8080/mirror/image_mirror_ocp_release_4.9.17.tar) |
+| [v4.5.33](http://xmedia-1.test.example.com:8080/mirror/image_mirror_ocp_release_4.5.33.tar) |
+| [v4.6.42](http://xmedia-1.test.example.com:8080/mirror/image_mirror_ocp_release_4.6.42.tar) |
+| [v4.7.39](http://xmedia-1.test.example.com:8080/mirror/image_mirror_ocp_release_4.6.42.tar) |
+| [v4.8.13](http://xmedia-1.test.example.com:8080/mirror/image_mirror_ocp_release_4.8.13.tar) |
+| [v4.8.28](http://xmedia-1.test.example.com:8080/mirror/image_mirror_ocp_release_4.8.28.tar) |
+| [v4.9.17](http://xmedia-1.test.example.com:8080/mirror/image_mirror_ocp_release_4.9.17.tar) |
 
 ## Limitation
 

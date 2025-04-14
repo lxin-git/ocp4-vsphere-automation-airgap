@@ -8,12 +8,12 @@ ocpconfig:
     hostname: mcm-inf  # The vmname/hostname can only support chars, do not use '-' or '_'
     public_network: VM Network
     public_nic: ens192
-    public_ip: 9.112.238.116
+    public_ip: 172.112.238.116
     public_netmask: 255.255.255.0
-    public_gateway : 9.112.238.1
-    public_dnsdomain: cn.ibm.com
-    public_dns1: 9.112.252.58
-    public_dns2: 9.110.183.72
+    public_gateway : 172.112.238.1
+    public_dnsdomain: cn.example.com
+    public_dns1: 172.112.252.58
+    public_dns2: 172.110.183.72
     private_nic: ens224
     private_ip: 192.168.60.20
     rootpassword: Dem0@ring
@@ -21,8 +21,8 @@ ocpconfig:
     num_cpus: 8
     disksize: 500
     # if you do not want use http/https proxy, just level proxy_env blank
-    # sample [proxy_env: http://9.30.189.71:3128/]
-    proxy_env: http://xcoc-proxy.fyre.ibm.com:3128/
+    # sample [proxy_env: http://172.30.189.71:3128/]
+    proxy_env: http://xcoc-proxy.test.example.com:3128/
     workdir: /root/ocp4-vsphere-automation
   #--------------------------------------------
 
@@ -30,17 +30,17 @@ ocpconfig:
 
   config:
     provider: vsphere
-    base_domain: cn.ibm.com
+    base_domain: cn.example.com
     cluster_name: mcm
     fips: false
     pull_secret: {"auths":{xxxxxx}}
   vcenter:
-    ip: 9.112.238.90
+    ip: 172.112.238.90
     datastore: ds_demo01
     network: DPortGroup
-    service_account_username: Administrator@vcenter.cn.ibm.com
+    service_account_username: Administrator@vcenter.cn.example.com
     service_account_password: 'YourPass'
-    admin_username: Administrator@vcenter.cn.ibm.com
+    admin_username: Administrator@vcenter.cn.example.com
     admin_password: 'YourPass'
     datacenter: Datacenter
     cluster: cluster0
@@ -79,8 +79,8 @@ ocpconfig:
   # If you don't have direct internet access, you can leverage the proxy, set it to true if required.
   proxy:
     enabled: false
-    http_proxy: http://9.111.141.91:3128/
-    https_proxy: http://9.111.141.91:3128/
+    http_proxy: http://172.111.141.91:3128/
+    https_proxy: http://172.111.141.91:3128/
     no_proxy: "{{'{{'}} config.cluster_name {{'}}'}}.{{'{{'}} config.base_domain {{'}}'}}"
     cert_content:
 
@@ -125,8 +125,8 @@ ocpconfig:
     ip: 10.0.2.216
     netmask: 255.255.255.0
     gateway : 10.0.2.254
-    public_dns1: 9.112.252.58
-    public_dns2: 9.110.183.72
+    public_dns1: 172.112.252.58
+    public_dns2: 172.110.183.72
     cpu: 8
     ram: 32768
     disksize: 200

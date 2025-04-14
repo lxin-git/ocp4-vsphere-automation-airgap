@@ -53,7 +53,7 @@ file and SSH key to login to CoreOS.
    `vim install-config.yaml`
    ```yaml
    apiVersion: v1
-   baseDomain: cn.ibm.com
+   baseDomain: cn.example.com
    compute:
    - name: worker
      replicas: 0
@@ -160,9 +160,9 @@ file and SSH key to login to CoreOS.
    and DNS setting.
    ```shell
    cat << EOF > /etc/dnsmasq.d/single-node.conf
-   address=/apps.sno-test.cn.ibm.com/10.0.2.230
-   address=/api-int.sno-test.cn.ibm.com/10.0.2.230
-   address=/api.sno-test.cn.ibm.com/10.0.2.230
+   address=/apps.sno-test.cn.example.com/10.0.2.230
+   address=/api-int.sno-test.cn.example.com/10.0.2.230
+   address=/api.sno-test.cn.example.com/10.0.2.230
    EOF
    ```
    ```sh
@@ -170,7 +170,7 @@ file and SSH key to login to CoreOS.
    systemctl restart dnsmasq
    ``` 
    > CoreOS default has dnsmasq installed but stopped and not enabled by default. we just add the DNS resolution and enable it.
-   > Here **sno-test** is the cluster name, **cn.ibm.com** is the cluster base domain, **10.0.2.230** is the SNO node static IP address.
+   > Here **sno-test** is the cluster name, **cn.example.com** is the cluster base domain, **10.0.2.230** is the SNO node static IP address.
    
    ```shell
    cat << EOF > /etc/NetworkManager/dispatcher.d/forcedns
@@ -181,8 +181,8 @@ file and SSH key to login to CoreOS.
          export TMP_FILE=$(mktemp /etc/forcedns_resolv.conf.XXXXXX)
          cp  $BASE_RESOLV_CONF $TMP_FILE
          chmod --reference=$BASE_RESOLV_CONF $TMP_FILE
-         sed -i -e "s/sno-test.cn.ibm.com//" \
-         -e "s/search /& sno-test.cn.ibm.com /" \
+         sed -i -e "s/sno-test.cn.example.com//" \
+         -e "s/search /& sno-test.cn.example.com /" \
          -e "0,/nameserver/s/nameserver/& $IP\n&/" $TMP_FILE
          mv $TMP_FILE /etc/resolv.conf
        fi
@@ -204,7 +204,7 @@ file and SSH key to login to CoreOS.
    Now everything has been settled, Just wait for the SNO cluster to be ready and access.
    If you don't use public DNS to resolve fqdn entries about the SNO cluster, add the entry in **/etc/hosts** file:
    ```conf
-   10.0.2.230 api.sno-test.cn.ibm.com console-openshift-console.apps.sno-test.cn.ibm.com integrated-oauth-server-openshift-authentication.apps.sno-test.cn.ibm.com oauth-openshift.apps.sno-test.cn.ibm.com prometheus-k8s-openshift-monitoring.apps.sno-test.cn.ibm.com grafana-openshift-monitoring.apps.sno-test.cn.ibm.com
+   10.0.2.230 api.sno-test.cn.example.com console-openshift-console.apps.sno-test.cn.example.com integrated-oauth-server-openshift-authentication.apps.sno-test.cn.example.com oauth-openshift.apps.sno-test.cn.example.com prometheus-k8s-openshift-monitoring.apps.sno-test.cn.example.com grafana-openshift-monitoring.apps.sno-test.cn.example.com
    ``` 
    Check the cluster operator status:
    ```sh
@@ -215,7 +215,7 @@ file and SSH key to login to CoreOS.
 ## Automatic deployment
 All the processes to automatic deploy a SNO cluster have been developed and merged to the repo [ocp4-vsphere-automation-airgap](https://github.com/lxin-git/ocp4-vsphere-automation-airgap).
 
-This repo provide the one step configuration for all kinds of openshift deployment on vmware via ansible playbook, include v4.3~v4.10 support, and support air-gapped deployment, see detailed instruction about [airgap configuration](https://github.ibm.com/llixinn/ocp4-vsphere-automation-airgap)
+This repo provide the one step configuration for all kinds of openshift deployment on vmware via ansible playbook, include v4.3~v4.10 support, and support air-gapped deployment.
 
 For SNO automatic deployment, the new extra parameters introduced in the one-off configure file, example as following:
 ```yaml
@@ -227,8 +227,8 @@ For SNO automatic deployment, the new extra parameters introduced in the one-off
     ip: 10.0.2.216
     netmask: 255.255.255.0
     gateway : 10.0.2.254
-    public_dns1: 9.112.252.58
-    public_dns2: 9.110.183.72
+    public_dns1: 172.112.252.58
+    public_dns2: 172.110.183.72
     cpu: 8
     ram: 32768
     disksize: 200
